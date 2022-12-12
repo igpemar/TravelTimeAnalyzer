@@ -29,6 +29,14 @@ class TravelStats:
         self.home2work.flushTravelTime()
         self.work2home.flushTravelTime()
 
+    def incremetRequestIDs(self, inc: int):
+        if not self.home2work.reqID:
+            self.home2work.setReqID(1)
+            self.work2home.setReqID(2)
+        else:
+            self.home2work.incrementReqID(2)
+            self.work2home.incrementReqID(2)
+
 
 class TravelTime:
     def __init__(self):
@@ -42,7 +50,7 @@ class TravelTime:
         self,
     ):
         self.reqID = []
-        self.timestamp = []
+        c = []
         self.distanveAVG = []
         self.durationInclTraffic = []
         self.durationEnclTraffic = []
@@ -63,6 +71,27 @@ class TravelTime:
             self.distanveAVG.append(data.values[i][2])
             self.durationInclTraffic.append(data.values[i][3])
             self.durationEnclTraffic.append(data.values[i][4])
+
+    def setTimeStamp(self, timestamp):
+        self.timestamp.append(
+            str(timestamp.year)
+            + "-"
+            + f"{timestamp.month:02}"
+            + "-"
+            + f"{timestamp.day:02}"
+            + " "
+            + f"{timestamp.hour:02}"
+            + ":"
+            + f"{timestamp.minute:02}"
+            + ":"
+            + f"{timestamp.second:02}"
+        )
+
+    def setReqID(self, reqID: int):
+        self.reqID = reqID
+
+    def incrementReqID(self, incr: int):
+        self.reqID += incr
 
 
 def restart_check():

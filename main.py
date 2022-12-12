@@ -7,6 +7,8 @@ import pandas
 import helpers.config, helpers.printers
 import ETL.extract
 
+REQ_SEND = 1
+
 
 def findwaittime(current_time, hdsf, ldsf):
     wait = ldsf
@@ -18,39 +20,6 @@ def findwaittime(current_time, hdsf, ldsf):
     return wait
 
 
-def build_request(HOME, WORK, API_KEY):
-    outputFormat = "json"
-    RequestStart = "https://maps.googleapis.com/maps/api/distancematrix/"
-    Origin = str(HOME[0]) + "%2C" + str(HOME[1])
-    Destination = str(WORK[0]) + "%2C" + str(WORK[1])
-    Req_car_Home_To_work = (
-        RequestStart
-        + outputFormat
-        + "?destinations="
-        + Destination
-        + "&origins="
-        + Origin
-        + "&mode=driving"
-        + "&departure_time=now"
-        + "&key="
-        + API_KEY
-    )
-    Req_car_Work_To_Home = (
-        RequestStart
-        + outputFormat
-        + "?destinations="
-        + Origin
-        + "&origins="
-        + Destination
-        + "&mode=driving"
-        + "&departure_time=now"
-        + "&key="
-        + API_KEY
-    )
-
-    return Req_car_Home_To_work, Req_car_Work_To_Home
-
-
 # Start time of the code (year, month, day, hour, minute, second)
 # WARNING: DO NOT USE LEADING ZEROS
 if __name__ == "__main__":
@@ -60,37 +29,20 @@ if __name__ == "__main__":
     config.initiateAPIkey()
     API_KEY = config.getApiKey()
 
-    # Intro message
+    # Print intro message
     helpers.printers.intro_message(config)
 
     # Checking for restart
     print("Checking for restart...")
-    (
-        req_n_1,
-        dt_str,
-        dist_1,
-        d_avg_1,
-        d_i_t_1,
-        req_n_2,
-        dist_2,
-        d_avg_2,
-        d_i_t_2,
-        Restart_Flag,
-    ) = ETL.extract.restart_check()
+    (TravelTime, Restart) = ETL.extract.restart_check()
 
     # Checking for start time
-    while config.START_TIME - datetime.datetime.now() > datetime.timedelta(seconds=1):
-        print(
-            "Current time: "
-            + str(datetime.datetime.now())
-            + "  ; Waiting for Startime ... "
-            + str(config.START_TIME)
-        )
+    while helpers.config.isItTimeToStart(config.START_TIME):
+        helpers.printers.printWaitTimeMessage(config.START_TIME)
         time.sleep(15)
 
     # Initializing Variables
-
-    if Restart_Flag == 1:
+    if Restart == 1:
         MyList1, MyList2 = [], []
 
     (
@@ -107,65 +59,63 @@ if __name__ == "__main__":
     t0, dt_data_dump = datetime.datetime.now(), datetime.datetime.now()
 
     # Building request
-    Req_1, Req_2 = build_request(HOME, WORK, API_KEY)
+    h2wRequest, w2hRequest = ETL.extract.build_request(config)
 
     prev_week = t0.isocalendar()[1]
-
-    print("Start time: ", t0)
+    print("Starting now at: ", t0)
 
     # Entering request loop
-    while 1:
-        # Incrementing request number
-        if not req_n_1:
-            req_n_1, req_n_2 = [1], [2]
-        else:
-            req_n_1.append(req_n_1[-1] + 2)
-            req_n_2.append(req_n_2[-1] + 2)
+    while True:
+        # Incrementing request numbers
+        TravelTime.incremetRequestIDs(2)
 
         # Dealing with timestamps
-        dt_req = datetime.datetime.now()
-        dt.append(dt_req)
+        requestTimestamp = datetime.datetime.now()
+        print(requestTimestamp)
+        dt.append(requestTimestamp)
 
-        dt_str.append(
-            str(dt[-1].year)
-            + "-"
-            + f"{dt[-1].month:02}"
-            + "-"
-            + f"{dt[-1].day:02}"
-            + " "
-            + f"{dt[-1].hour:02}"
-            + ":"
-            + f"{dt[-1].minute:02}"
-            + ":"
-            + f"{dt[-1].second:02}"
-        )
-        print(dt_str[-1])
-        Current_Week = dt_req.isocalendar()[1]
+        TravelTime.home2work.setTimeStamp(requestTimestamp)
+        TravelTime.work2home.setTimeStamp(requestTimestamp)
+        Current_Week = requestTimestamp.isocalendar()[1]
 
         # Sending Requests
         try:
-            if Req_send == 1:
+            if REQ_SEND == 1:
                 payload, headers = {}, {}
 
-                print(str(dt_req)[0:-7] + " ; Sending request #" + str(req_n_1[-1]))
+                print(
+                    str(requestTimestamp)[0:-7]
+                    + " ; Sending request #"
+                    + str(h2WReqID[-1])
+                )
                 response_1 = requests.request(
-                    "GET", Req_1, headers=headers, data=payload
+                    "GET", h2wRequest, headers=headers, data=payload
                 )
 
-                print(str(dt_req)[0:-7] + " ; Request response successfully received")
-                print(str(dt_req)[0:-7] + " ; Sending request #" + str(req_n_2[-1]))
+                print(
+                    str(requestTimestamp)[0:-7]
+                    + " ; Request response successfully received"
+                )
+                print(
+                    str(requestTimestamp)[0:-7]
+                    + " ; Sending request #"
+                    + str(w2hReqID[-1])
+                )
 
                 response_2 = requests.request(
-                    "GET", Req_2, headers=headers, data=payload
+                    "GET", w2hRequest, headers=headers, data=payload
                 )
 
-                print(str(dt_req)[0:-7] + " ; Request response successfully received")
-                print(str(dt_req)[0:-7] + " ; Storing data")
+                print(
+                    str(requestTimestamp)[0:-7]
+                    + " ; Request response successfully received"
+                )
+                print(str(requestTimestamp)[0:-7] + " ; Storing data")
             else:
                 response_1, response_2 = "", ""
         except:
-            req_n_1[-1] = req_n_1[-1] - 2
-            req_n_2[-1] = req_n_2[-1] - 2
+            h2WReqID[-1] = h2WReqID[-1] - 2
+            w2hReqID[-1] = w2hReqID[-1] - 2
             print(
                 "ERROR: An error occurred while performing the API requests, check your internet connection"
             )
@@ -173,7 +123,7 @@ if __name__ == "__main__":
             time.sleep(60)
             continue
 
-        if Current_Week != prev_week and Req_send == 1:
+        if Current_Week != prev_week and REQ_SEND == 1:
             This_Week_1 = np.column_stack(
                 (w_req_n_1, w_dt_str, w_1_dist_1, w_1_d_avg_1, w_1_d_i_t_1)
             )
@@ -210,10 +160,10 @@ if __name__ == "__main__":
             ) = ([], [], [], [], [], [], [], [])
 
         # Storing Data
-        if Req_send == 1:
+        if REQ_SEND == 1:
             A = response_1.json()
 
-            w_req_n_1.append(req_n_1[-1])
+            w_req_n_1.append(h2WReqID[-1])
             w_dt_str.append(dt_str[-1])
             w_1_d_i_t_1.append(
                 round(
@@ -240,7 +190,7 @@ if __name__ == "__main__":
             dist_1.append(
                 round(A["rows"][0]["elements"][0]["distance"]["value"] / 1000.0, 2)
             )
-            MyList1 = np.column_stack((req_n_1, dt_str, dist_1, d_avg_1, d_i_t_1))
+            MyList1 = np.column_stack((h2WReqID, dt_str, dist_1, d_avg_1, d_i_t_1))
 
             B = response_2.json()
 
@@ -269,15 +219,18 @@ if __name__ == "__main__":
             dist_2.append(
                 round(B["rows"][0]["elements"][0]["distance"]["value"] / 1000.0, 2)
             )
-            MyList2 = np.column_stack((req_n_2, dt_str, dist_2, d_avg_2, d_i_t_2))
+            MyList2 = np.column_stack((w2hReqID, dt_str, dist_2, d_avg_2, d_i_t_2))
 
-            Elapsed_Time_Since_Last_Data_Dump = dt_req - dt_data_dump
-            if req_n_1[
+            Elapsed_Time_Since_Last_Data_Dump = requestTimestamp - dt_data_dump
+            if h2WReqID[
                 -1
             ] == 1 or Elapsed_Time_Since_Last_Data_Dump >= datetime.timedelta(
                 seconds=DATA_DUMP_FREQUENCY, microseconds=10
             ):
-                print(str(dt_req)[0:-7] + " ; Writing request data to output file")
+                print(
+                    str(requestTimestamp)[0:-7]
+                    + " ; Writing request data to output file"
+                )
                 np.savetxt(
                     "Output_1.csv",
                     MyList1,
@@ -299,13 +252,22 @@ if __name__ == "__main__":
         else:
             MyList1, MyList2 = [], []
 
-        print(str(dt_req)[0:-7] + " ; ---> DONE")
-        print(str(dt_req)[0:-7] + " ; ----------------------------------------------")
+        print(str(requestTimestamp)[0:-7] + " ; ---> DONE")
+        print(
+            str(requestTimestamp)[0:-7]
+            + " ; ----------------------------------------------"
+        )
         wait_time = findwaittime(
-            dt_req, HIGH_SAMPLING_FREQUENCY, LOW_SAMPLING_FREQUENCY
+            requestTimestamp, HIGH_SAMPLING_FREQUENCY, LOW_SAMPLING_FREQUENCY
         )
         print(
-            str(dt_req)[0:-7] + " ; ----- Waiting " + str(wait_time) + " seconds.-----"
+            str(requestTimestamp)[0:-7]
+            + " ; ----- Waiting "
+            + str(wait_time)
+            + " seconds.-----"
         )  #
-        print(str(dt_req)[0:-7] + " ; ----------------------------------------------")
+        print(
+            str(requestTimestamp)[0:-7]
+            + " ; ----------------------------------------------"
+        )
         time.sleep(wait_time)
