@@ -10,7 +10,7 @@ DATA_DUMP_FREQUENCY = 10  # In seconds (integer)
 HIGH_SAMPLING_FREQUENCY = 1  # In seconds Integer
 LOW_SAMPLING_FREQUENCY = 1200  # In Seconds Integer
 
-START_TIME = datetime.datetime(2022, 12, 11, 20, 26, 0)
+START_TIME = datetime.datetime(2022, 12, 12, 18, 9, 0)
 
 Req_send = 1
 
@@ -36,3 +36,7 @@ class Config:
         self,
     ):
         return self.API_KEY
+
+
+def isItTimeToStart(start_time) -> bool:
+    return start_time - datetime.datetime.now() > datetime.timedelta(seconds=1)
