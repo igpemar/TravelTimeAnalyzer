@@ -1,4 +1,5 @@
 import helpers
+import datetime
 
 
 def intro_message(config: helpers.config.Config):
@@ -43,4 +44,13 @@ def intro_message(config: helpers.config.Config):
     )
     print(
         "------------------------------------------------------------------------------"
+    )
+
+
+def printWaitTimeMessage(start_time: str) -> None:
+    print(
+        "Current time: "
+        + str(datetime.datetime.now())
+        + "  ; Waiting for Startime ... "
+        + str(start_time)
     )
