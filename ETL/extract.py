@@ -2,71 +2,122 @@ import sys
 import pandas
 
 
+class TravelStats:
+    def __init__(self):
+        self.home2work = TravelTime()
+        self.work2home = TravelTime()
+
+    def loadH2WFromCSV(self, filename):
+        self.home2work.loadOutputFromCSV(filename)
+
+    def loadW2FFromCSV(self, filename):
+        self.work2home.loadOutputFromCSV(filename)
+
+    def getH2W(
+        self,
+    ):
+        return self.home2work
+
+    def getW2H(
+        self,
+    ):
+        return self.work2home
+
+    def flushStats(
+        self,
+    ):
+        self.home2work.flushTravelTime()
+        self.work2home.flushTravelTime()
+
+
+class TravelTime:
+    def __init__(self):
+        self.reqID = []
+        self.timestamp = []
+        self.distanveAVG = []
+        self.durationInclTraffic = []
+        self.durationEnclTraffic = []
+
+    def flushTravelTime(
+        self,
+    ):
+        self.reqID = []
+        self.timestamp = []
+        self.distanveAVG = []
+        self.durationInclTraffic = []
+        self.durationEnclTraffic = []
+
+    def loadOutputFromCSV(self, filename: str):
+        try:
+            data = pandas.read_csv(filename, sep=";")
+        except:
+            print(
+                f"Error reading from {filename} were found, impossible to restart from existing data, exiting ..."
+            )
+            sys.exit()
+
+        print(f"Succesfully loaded {data.shape[0]} rows from {filename}")
+        for i in range(data.shape[0]):
+            self.reqID.append(data.values[i][0])
+            self.timestamp.append(data.values[i][1].strip())
+            self.distanveAVG.append(data.values[i][2])
+            self.durationInclTraffic.append(data.values[i][3])
+            self.durationEnclTraffic.append(data.values[i][4])
+
+
 def restart_check():
     while True:
         s = input(
             " Would you like to start from scratch and erase the existing data? Y/N/A "
         )
-        req_n_1, req_n_2, dt_str, d_i_t_1, d_i_t_2, d_avg_1, d_avg_2, dist_1, dist_2 = (
-            [],
-            [],
-            [],
-            [],
-            [],
-            [],
-            [],
-            [],
-            [],
-        )
+        results = TravelStats()
         if s == "A" or s == "A":
             sys.exit()
         elif s == "y" or s == "Y":
             Restart_Flag = 1
             return (
-                req_n_1,
-                req_n_2,
-                dt_str,
-                d_i_t_1,
-                d_i_t_2,
-                d_avg_1,
-                d_avg_2,
-                dist_1,
-                dist_2,
+                results,
                 Restart_Flag,
             )
         elif s == "n" or s == "N":
             Restart_Flag = 0
-            try:
-                Output_1 = pandas.read_csv("Output_1.csv", sep=";")
-                Output_2 = pandas.read_csv("Output_2.csv", sep=";")
-            except:
-                print(
-                    " No data files were found, impossible to restart from existing data, exiting ..."
-                )
-                sys.exit()
-
-            for i in range(Output_1.shape[0]):
-                req_n_1.append(Output_1.values[i][0])
-                dt_str.append(Output_1.values[i][1].strip())
-                dist_1.append(Output_1.values[i][2])
-                d_avg_1.append(Output_1.values[i][3])
-                d_i_t_1.append(Output_1.values[i][4])
-
-            for i in range(Output_2.shape[0]):
-                req_n_2.append(Output_2.values[i][0])
-                dist_2.append(Output_2.values[i][2])
-                d_avg_2.append(Output_2.values[i][3])
-                d_i_t_2.append(Output_2.values[i][4])
+            results.loadH2WFromCSV("Output_1.csv")
+            results.loadW2FFromCSV("Output_2.csv")
 
             return (
-                req_n_1,
-                dt_str,
-                dist_1,
-                d_avg_1,
-                d_i_t_1,
-                req_n_2,
-                dist_2,
-                d_avg_2,
-                d_i_t_2,
+                results,
                 Restart_Flag,
             )
+
+
+def build_request(config) -> tuple[str]:
+    outputFormat = "json"
+    requestStart = "https://maps.googleapis.com/maps/api/distancematrix/"
+    startPoint = str(config.HOME[0]) + "%2C" + str(config.HOME[1])
+    endPoint = str(config.WORK[0]) + "%2C" + str(config.WORK[1])
+    h2wRequest = (
+        requestStart
+        + outputFormat
+        + "?destinations="
+        + endPoint
+        + "&origins="
+        + startPoint
+        + "&mode=driving"
+        + "&departure_time=now"
+        + "&key="
+        + config.API_KEY
+    )
+    w2hRequest = (
+        requestStart
+        + outputFormat
+        + "?destinations="
+        + startPoint
+        + "&origins="
+        + endPoint
+        + "&mode=driving"
+        + "&departure_time=now"
+        + "&key="
+        + config.API_KEY
+    )
+
+    return h2wRequest, w2hRequest
