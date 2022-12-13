@@ -1,5 +1,6 @@
 import sys
 import pandas
+import datetime
 
 
 class TravelStats:
@@ -29,19 +30,32 @@ class TravelStats:
         self.home2work.flushTravelTime()
         self.work2home.flushTravelTime()
 
-    def incremetRequestIDs(self, inc: int):
+    def incrementRequestIDs(self, inc: int):
         if not self.home2work.reqID:
             self.home2work.setReqID(1)
             self.work2home.setReqID(2)
         else:
-            self.home2work.incrementReqID(2)
-            self.work2home.incrementReqID(2)
+            self.home2work.incrementReqID(inc)
+            self.work2home.incrementReqID(inc)
+
+    def decrementRequestIDs(self, inc: int):
+        if not self.home2work.reqID:
+            self.home2work.setReqID(1)
+            self.work2home.setReqID(2)
+        else:
+            self.home2work.incrementReqID(-inc)
+            self.work2home.incrementReqID(-inc)
+
+    def setTimestamp(self, timestamp):
+        self.home2work.setTimeStamps(timestamp)
+        self.work2home.setTimeStamps(timestamp)
 
 
 class TravelTime:
     def __init__(self):
         self.reqID = []
-        self.timestamp = []
+        self.timestampSTR = []
+        self.timestampDT = []
         self.distanveAVG = []
         self.durationInclTraffic = []
         self.durationEnclTraffic = []
@@ -67,13 +81,13 @@ class TravelTime:
         print(f"Succesfully loaded {data.shape[0]} rows from {filename}")
         for i in range(data.shape[0]):
             self.reqID.append(data.values[i][0])
-            self.timestamp.append(data.values[i][1].strip())
+            self.timestampSTR.append(data.values[i][1].strip())
             self.distanveAVG.append(data.values[i][2])
             self.durationInclTraffic.append(data.values[i][3])
             self.durationEnclTraffic.append(data.values[i][4])
 
-    def setTimeStamp(self, timestamp):
-        self.timestamp.append(
+    def setTimeStamps(self, timestamp):
+        self.timestampSTR.append(
             str(timestamp.year)
             + "-"
             + f"{timestamp.month:02}"
@@ -86,12 +100,13 @@ class TravelTime:
             + ":"
             + f"{timestamp.second:02}"
         )
+        self.timestampDT.append(timestamp)
 
     def setReqID(self, reqID: int):
-        self.reqID = reqID
+        self.reqID = [reqID]
 
     def incrementReqID(self, incr: int):
-        self.reqID += incr
+        self.reqID.append(self.reqID[-1] + incr)
 
 
 def restart_check():
@@ -150,3 +165,15 @@ def build_request(config) -> tuple[str]:
     )
 
     return h2wRequest, w2hRequest
+
+
+def handleResponse(response) -> bool:
+    if response.ok:
+        print(f"{datetime.datetime.now()} ;  Request succeded")
+        return True
+    else:
+        print(
+            f"{datetime.datetime.now()} ;  ERROR: An error occurred while performing the API requests, check your internet connection"
+        )
+        print(f"{datetime.datetime.now()} ;  waiting 60 seconds before trying again")
+        return False

@@ -2,7 +2,7 @@ import helpers
 import datetime
 
 
-def intro_message(config: helpers.config.Config):
+def printIntroMessage(config: helpers.config.Config):
     homeCardinalLat = " N ; "
     workCardinalLat = " N ; "
     if config.HOME[0] < 0:
@@ -54,3 +54,11 @@ def printWaitTimeMessage(start_time: str) -> None:
         + "  ; Waiting for Startime ... "
         + str(start_time)
     )
+
+
+def printRequestSent(reqID):
+    print(f"{datetime.datetime.now()} ; Sending request #{reqID}")
+
+
+def printRequestReceivedSuccesfully(reqID):
+    print(f"{datetime.datetime.now()} ; Request #{reqID} succeeded.")
