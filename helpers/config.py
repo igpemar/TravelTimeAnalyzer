@@ -25,6 +25,10 @@ class Config:
         self.START_TIME = START_TIME
         self.API_KEY = ""
 
+        self.RETRY_INTERVAL = 1  # seconds
+        self.RETRY_COUNTER = 1
+        self.RETRY_MAX_TRIES = 5
+
     def initiateAPIkey(
         self,
     ):
@@ -36,6 +40,16 @@ class Config:
         self,
     ):
         return self.API_KEY
+
+    def incRetryCounter(
+        self,
+    ):
+        self.RETRY_COUNTER += 1
+
+    def resetRetryCounter(
+        self,
+    ):
+        self.RETRY_COUNTER = 1
 
 
 def isItTimeToStart(start_time) -> bool:
