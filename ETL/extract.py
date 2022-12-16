@@ -1,5 +1,8 @@
 import sys
+import json
+import time
 import pandas
+import requests
 import datetime
 
 
@@ -8,7 +11,7 @@ class TravelStats:
         self.home2work = TravelTime()
         self.work2home = TravelTime()
 
-    def loadH2WFromCSV(self, filename):
+    def loadH2WFromCSV(self, filename="Output"):
         self.home2work.loadOutputFromCSV(filename)
 
     def loadW2FFromCSV(self, filename):
@@ -56,7 +59,7 @@ class TravelTime:
         self.reqID = []
         self.timestampSTR = []
         self.timestampDT = []
-        self.distanveAVG = []
+        self.distanceAVG = []
         self.durationInclTraffic = []
         self.durationEnclTraffic = []
 
@@ -65,7 +68,7 @@ class TravelTime:
     ):
         self.reqID = []
         c = []
-        self.distanveAVG = []
+        self.distanceAVG = []
         self.durationInclTraffic = []
         self.durationEnclTraffic = []
 
@@ -82,7 +85,7 @@ class TravelTime:
         for i in range(data.shape[0]):
             self.reqID.append(data.values[i][0])
             self.timestampSTR.append(data.values[i][1].strip())
-            self.distanveAVG.append(data.values[i][2])
+            self.distanceAVG.append(data.values[i][2])
             self.durationInclTraffic.append(data.values[i][3])
             self.durationEnclTraffic.append(data.values[i][4])
 
@@ -109,24 +112,35 @@ class TravelTime:
         self.reqID.append(self.reqID[-1] + incr)
 
 
-def restart_check():
+def restart_check(FORCED_INPUT="", sourcedata="Output"):
     while True:
-        s = input(
-            " Would you like to start from scratch and erase the existing data? Y/N/A "
-        )
+        if FORCED_INPUT != "":
+            s = FORCED_INPUT
+        else:
+            s = input(
+                " Would you like to start from scratch and erase the existing data? Y/N/A "
+            )
         results = TravelStats()
         if s == "A" or s == "A":
             sys.exit()
         elif s == "y" or s == "Y":
             Restart_Flag = 1
+            results.home2work.reqID = [1]
+            results.work2home.reqID = [2]
             return (
                 results,
                 Restart_Flag,
             )
         elif s == "n" or s == "N":
             Restart_Flag = 0
-            results.loadH2WFromCSV("Output_1.csv")
-            results.loadW2FFromCSV("Output_2.csv")
+            results.loadH2WFromCSV(sourcedata + "_h2w.csv")
+            results.loadW2FFromCSV(sourcedata + "_w2h.csv")
+            results.home2work.reqID = list(
+                range(1, len(results.home2work.distanceAVG) * 2 + 2, 2)
+            )
+            results.work2home.reqID = list(
+                range(2, len(results.home2work.distanceAVG) * 2 + 3, 2)
+            )
 
             return (
                 results,
@@ -167,6 +181,40 @@ def build_request(config) -> tuple[str]:
     return h2wRequest, w2hRequest
 
 
+def sendRequest(config, request, reqID):
+    payload, headers = {}, {}
+    config.resetRetryCounter()
+    while True:
+        try:
+            resp = requests.request("GET", request, headers=headers, data=payload)
+            break
+        except requests.ConnectionError:
+            if config.RETRY_COUNTER < config.RETRY_MAX_TRIES:
+                config.incRetryCounter()
+                print(
+                    f"Request failed, retrying in {config.RETRY_INTERVAL} seconds; attempt {config.RETRY_COUNTER}/{config.RETRY_MAX_TRIES}"
+                )
+                time.sleep(config.RETRY_INTERVAL)
+                continue
+            else:
+                print(f"Max number of tries reached for Request {reqID}, exiting")
+                sys.exit()
+
+    config.resetRetryCounter()
+    ok = handleResponse(resp)
+    while not ok:
+        if config.RETRY_COUNTER < config.RETRY_MAX_TRIES:
+            config.incRetryCounter()
+            print(f"Response nopt OK, retrying in {config.RETRY_INTERVAL} seconds")
+            time.sleep(config.RETRY_INTERVAL)
+            continue
+        else:
+            f"Max number of tries reached for Request {reqID}, exiting"
+            sys.exit()
+
+    return resp
+
+
 def handleResponse(response) -> bool:
     if response.ok:
         print(f"{datetime.datetime.now()} ;  Request succeded")
@@ -176,3 +224,15 @@ def handleResponse(response) -> bool:
             f"{datetime.datetime.now()} ;  ERROR: An error occurred while performing the API requests"
         )
         return False
+
+
+def mockh2wResponseAsJson() -> str:
+    return json.loads(
+        '{"rows":[{"elements":[{"duration_in_traffic": {"value": 900},"duration": {"value": 800},"distance": {"value": 5100}}]}]}'
+    )
+
+
+def mockw2hResponseAsJson() -> str:
+    return json.loads(
+        '{"rows":[{"elements":[{"duration_in_traffic": {"value": 950},"duration": {"value": 850},"distance": {"value": 5750}}]}]}'
+    )
