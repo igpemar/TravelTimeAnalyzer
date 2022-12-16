@@ -8,8 +8,8 @@ WORK = (55.672162, 12.585666)  # GPS Coordinates in decimal degrees DDD.DDDDD
 
 DATA_DUMP_FREQUENCY = 10  # In seconds (integer)
 
-HIGH_SAMPLING_FREQUENCY = 1  # In seconds Integer
-LOW_SAMPLING_FREQUENCY = 1200  # In Seconds Integer
+HIGH_SAMPLING_TIME = 1  # In seconds Integer
+LOW_SAMPLING_TIME = 1200  # In Seconds Integer
 
 START_TIME = datetime.datetime(2022, 12, 12, 18, 9, 0)
 
@@ -21,8 +21,8 @@ class Config:
         self.HOME = HOME
         self.WORK = WORK
         self.DATA_DUMP_FREQUENCY = DATA_DUMP_FREQUENCY
-        self.HIGH_SAMPLING_FREQUENCY = HIGH_SAMPLING_FREQUENCY
-        self.LOW_SAMPLING_FREQUENCY = LOW_SAMPLING_FREQUENCY
+        self.HIGH_SAMPLING_FREQUENCY = HIGH_SAMPLING_TIME
+        self.LOW_SAMPLING_FREQUENCY = LOW_SAMPLING_TIME
         self.START_TIME = START_TIME
         self.API_KEY = ""
 
@@ -63,14 +63,12 @@ def isItTimeToDumpData(timeSinceLastDataDump, config) -> bool:
     )
 
 
-def findwaittime(current_time, hdsf, ldsf):
-    wait = ldsf
-    if current_time.weekday():
-        h = current_time.hour
+def findwaittime(time, hdsf, ldsf):
+    if time.weekday():
+        h = time.hour
         if 5 <= h < 11 or 13 <= h < 19:
-            wait = hdsf
-
-    return wait
+            return hdsf
+    return ldsf
 
 
 def waitForNextCycle(reqTimestamp, config):
