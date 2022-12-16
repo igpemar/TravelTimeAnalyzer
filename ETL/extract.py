@@ -173,7 +173,6 @@ def handleResponse(response) -> bool:
         return True
     else:
         print(
-            f"{datetime.datetime.now()} ;  ERROR: An error occurred while performing the API requests, check your internet connection"
+            f"{datetime.datetime.now()} ;  ERROR: An error occurred while performing the API requests"
         )
-        print(f"{datetime.datetime.now()} ;  waiting 60 seconds before trying again")
         return False
