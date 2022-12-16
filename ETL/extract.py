@@ -217,7 +217,8 @@ def sendRequest(config, request, reqID):
 
 def handleResponse(response) -> bool:
     if response.ok:
-        print(f"{datetime.datetime.now()} ;  Request succeded")
+        elapsed = round(response.elapsed.microseconds / 1000, 1)
+        print(f"{datetime.datetime.now()} ;  Request succeded, {elapsed} ms")
         return True
     else:
         print(
