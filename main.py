@@ -65,9 +65,6 @@ if __name__ == "__main__":
 
     # Entering request loop
     while True:
-        # Incrementing request numbers
-        TravelTime.incrementRequestIDs(2)
-
         # Dealing with timestamps
         reqTimestamp = datetime.datetime.now()
         print(reqTimestamp)
@@ -75,26 +72,83 @@ if __name__ == "__main__":
         Current_Week = reqTimestamp.isocalendar()[1]
 
         # Sending Requests
+        payload, headers = {}, {}
         if REQ_SEND == 1:
-            payload, headers = {}, {}
-
+            # Request for HOME2WORK
             helpers.printers.printRequestSent(TravelTime.home2work.reqID[-1])
-            h2wResp = requests.request("GET", h2wRequest, headers=headers, data=payload)
-            ok = ETL.extract.handleResponse(h2wResp)
-            if not ok:
-                TravelTime.home2work.reqID -= 1
-                time.sleep(60)
-                continue
+            try:
+                h2wResp = requests.request(
+                    "GET", h2wRequest, headers=headers, data=payload
+                )
+            except requests.ConnectionError:
+                if config.RETRY_COUNTER < config.RETRY_MAX_TRIES:
+                    config.incRetryCounter()
+                    print(
+                        f"Request failed, retrying in {config.RETRY_INTERVAL} seconds; attempt {config.RETRY_COUNTER}/{config.RETRY_MAX_TRIES}"
+                    )
+                    time.sleep(config.RETRY_INTERVAL)
+                    continue
+                else:
+                    print(
+                        f"Max number of tries reached for Request {TravelTime.home2work.reqID[-1]}, exiting"
+                    )
+                    sys.exit()
 
+            config.resetRetryCounter()
+            ok = ETL.extract.handleResponse(h2wResp)
+            while not ok:
+                if config.RETRY_COUNTER < config.RETRY_MAX_TRIES:
+                    config.incRetryCounter()
+                    print(
+                        f"Response nopt OK, retrying in {config.RETRY_INTERVAL} seconds"
+                    )
+                    time.sleep(config.RETRY_INTERVAL)
+                    continue
+                else:
+                    f"Max number of tries reached for Request {TravelTime.home2work.reqID[-1]}, exiting"
+                    sys.exit()
+
+            # Request for HWORK2HOME
             helpers.printers.printRequestSent(TravelTime.work2home.reqID[-1])
-            w2hResp = requests.request("GET", w2hRequest, headers=headers, data=payload)
-            ok = ETL.extract.handleResponse(w2hResp)
-            if not ok:
-                TravelTime.work2home.reqID -= 1
-                time.sleep(60)
-                continue
+            try:
+                h2wResp = requests.request(
+                    "GET", h2wRequest, headers=headers, data=payload
+                )
+            except requests.ConnectionError:
+                if config.RETRY_COUNTER < config.RETRY_MAX_TRIES:
+                    config.incRetryCounter()
+                    print(
+                        f"Request failed, retrying in {config.RETRY_INTERVAL} seconds; attempt {config.RETRY_COUNTER}/{config.RETRY_MAX_TRIES}"
+                    )
+                    time.sleep(config.RETRY_INTERVAL)
+                    continue
+                else:
+                    print(
+                        f"Max number of tries reached for Request {TravelTime.work2home.reqID[-1]}, exiting"
+                    )
+                    sys.exit()
+
+            config.resetRetryCounter()
+            ok = ETL.extract.handleResponse(h2wResp)
+            while not ok:
+                if config.RETRY_COUNTER < config.RETRY_MAX_TRIES:
+                    config.incRetryCounter()
+                    print(
+                        f"Response nopt OK, retrying in {config.RETRY_INTERVAL} seconds"
+                    )
+                    time.sleep(config.RETRY_INTERVAL)
+                    continue
+                else:
+                    f"Max number of tries reached for Request {TravelTime.work2home.reqID[-1]}, exiting"
+                    sys.exit()
+
             TravelTime.setTimestamp(reqTimestamp)
             print(str(reqTimestamp)[0:-7] + " ; Storing data")
+            A = h2wResp.json()
+            B = w2hResp.json()
+
+            # Incrementing request numbers
+            TravelTime.incrementRequestIDs(2)
         else:
             h2wResp, w2hResp = "", ""
 
@@ -136,8 +190,6 @@ if __name__ == "__main__":
 
         # Storing Data
         if REQ_SEND == 1:
-            A = h2wResp.json()
-
             w_req_n_1.append(TravelTime.home2work.reqID[-1])
             w_dt_str.append(dt_str[-1])
             w_1_d_i_t_1.append(
@@ -168,8 +220,6 @@ if __name__ == "__main__":
             MyList1 = np.column_stack(
                 (TravelTime.home2work.reqID, dt_str, dist_1, d_avg_1, d_i_t_1)
             )
-
-            B = w2hResp.json()
 
             w_2_d_i_t_2.append(
                 round(
