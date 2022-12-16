@@ -57,8 +57,8 @@ def printWaitTimeMessage(start_time: str) -> None:
 
 
 def printRequestSent(reqID):
-    print(f"{datetime.datetime.now()} ; Sending request #{reqID}")
+    print(str(datetime.datetime.now())[0:19] + f" ; Sending request #{reqID}")
 
 
 def printRequestReceivedSuccesfully(reqID):
-    print(f"{datetime.datetime.now()} ; Request #{reqID} succeeded.")
+    print(str(datetime.datetime.now())[0:19] + f" ; Request #{reqID} succeeded.")

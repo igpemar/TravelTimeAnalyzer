@@ -8,6 +8,7 @@ import helpers.config, helpers.printers
 import ETL.extract, ETL.transform, ETL.load
 
 REQ_SEND = 0
+RESTART_INPUT = ""
 
 if __name__ == "__main__":
     # Get configuration variables
@@ -20,7 +21,7 @@ if __name__ == "__main__":
 
     # Checking for restart
     print("Checking for restart...")
-    (TravelStats, Restart) = ETL.extract.restart_check("")
+    (TravelStats, Restart) = ETL.extract.restart_check(RESTART_INPUT)
 
     # Checking for start time
     while helpers.config.isItTimeToStart(config.START_TIME):
@@ -31,17 +32,6 @@ if __name__ == "__main__":
     if Restart == 1:
         MyList1, MyList2 = [], []
 
-    (
-        w_req_n_1,
-        w_dt_str,
-        w_1_d_i_t_1,
-        w_2_d_i_t_2,
-        w_1_d_avg_1,
-        w_2_d_avg_2,
-        w_1_dist_1,
-        w_2_dist_2,
-        dt,
-    ) = ([], [], [], [], [], [], [], [], [])
     t0, dtDataDump = datetime.datetime.now(), datetime.datetime.now()
 
     # Building request
@@ -54,7 +44,6 @@ if __name__ == "__main__":
     while True:
         # Dealing with timestamps
         reqTimestamp = datetime.datetime.now()
-        dt.append(reqTimestamp)
         Current_Week = reqTimestamp.isocalendar()[1]
 
         # Sending Requests
@@ -62,24 +51,20 @@ if __name__ == "__main__":
         reqID_1 = TravelStats.home2work.reqID[-1]
         reqID_2 = TravelStats.work2home.reqID[-1]
         if REQ_SEND == 1:
-            # Request for HOME2WORK
+            # Sending request for HOME2WORK
             helpers.printers.printRequestSent(reqID_1)
             h2wResp = ETL.extract.sendRequest(config, h2wRequest, reqID_1)
 
-            # Request for WORK2HOME
+            # Sending request for WORK2HOME
             helpers.printers.printRequestSent(reqID_2)
             w2hResp = ETL.extract.sendRequest(config, w2hRequest, reqID_2)
 
-            # Store Data
-            TravelStats.setTimestamp(reqTimestamp)
-
-            print(str(reqTimestamp)[0:-7] + " ; Storing data")
-
+            # Parsing response
             h2wRespJSON = h2wResp.json()
             w2hRespJSON = w2hResp.json()
-            # Incrementing request numbers
 
         else:
+            # Parsing response
             helpers.printers.printRequestSent(reqID_1)
             h2wRespJSON = ETL.extract.mockh2wResponseAsJson()
             helpers.printers.printRequestSent(reqID_2)
@@ -96,5 +81,8 @@ if __name__ == "__main__":
         ):
             ETL.load.saveTravelStats2txt(TravelStats)
             dtDataDump = datetime.datetime.now()
+
+        # Incrementing request numbers
         TravelStats.incrementRequestIDs(2)
+
         helpers.config.waitForNextCycle(reqTimestamp, config)
