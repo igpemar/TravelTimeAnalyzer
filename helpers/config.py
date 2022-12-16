@@ -1,5 +1,6 @@
-import configparser
+import time
 import datetime
+import configparser
 
 
 HOME = (55.688519, 12.528168)  # GPS Coordinates in decimal degrees DDD.DDDDD
@@ -54,3 +55,33 @@ class Config:
 
 def isItTimeToStart(start_time) -> bool:
     return start_time - datetime.datetime.now() > datetime.timedelta(seconds=1)
+
+
+def isItTimeToDumpData(timeSinceLastDataDump, config) -> bool:
+    return timeSinceLastDataDump >= datetime.timedelta(
+        seconds=config.DATA_DUMP_FREQUENCY, microseconds=10
+    )
+
+
+def findwaittime(current_time, hdsf, ldsf):
+    wait = ldsf
+    if current_time.weekday():
+        h = current_time.hour
+        if 5 <= h < 11 or 13 <= h < 19:
+            wait = hdsf
+
+    return wait
+
+
+def waitForNextCycle(reqTimestamp, config):
+    wait_time = findwaittime(
+        reqTimestamp, config.HIGH_SAMPLING_FREQUENCY, config.LOW_SAMPLING_FREQUENCY
+    )
+    print(
+        str(reqTimestamp)[0:-7]
+        + " ; - Waiting "
+        + str(wait_time)
+        + " second(s) for next request cycle-"
+    )
+    print(str(reqTimestamp)[0:-7] + " ; ----------------------------------------------")
+    time.sleep(wait_time)
