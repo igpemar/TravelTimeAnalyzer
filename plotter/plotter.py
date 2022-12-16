@@ -5,7 +5,7 @@ import datetime
 import seaborn as sns
 
 chop = [0, 10]
-axis_mode = "Running"  # Choose between "Running" and "FullWeek"
+axis_mode = "Running"  # Choose between "Running", "FullWeek" and "FullDay"
 
 
 def initialize_plot_axes(
@@ -29,7 +29,7 @@ def initialize_plot_axes(
 
 
 def restart_check(DataFolderPath="", Filename="Output"):
-    req_n_1, req_n_2, dt_str, d_i_t_1, d_i_t_2, d_avg_1, d_avg_2, dist_1, dist_2 = (
+    reqID_1, reqID_2, reqTsStr, d_i_t_1, d_i_t_2, d_avg_1, d_avg_2, dist_1, dist_2 = (
         [],
         [],
         [],
@@ -48,19 +48,19 @@ def restart_check(DataFolderPath="", Filename="Output"):
     Output_2 = pandas.read_csv(DataFolderPath + Filename + "_w2h.csv", sep=";")
 
     for i in range(Output_1.shape[0]):
-        req_n_1.append(Output_1.values[i][0])
-        dt_str.append(Output_1.values[i][1].strip())
+        reqID_1.append(Output_1.values[i][0])
+        reqTsStr.append(Output_1.values[i][1].strip())
         dist_1.append(Output_1.values[i][2])
         d_avg_1.append(Output_1.values[i][4])
         d_i_t_1.append(Output_1.values[i][3])
 
     for i in range(Output_2.shape[0]):
-        req_n_2.append(Output_2.values[i][0])
+        reqID_2.append(Output_2.values[i][0])
         dist_2.append(Output_2.values[i][2])
         d_avg_2.append(Output_2.values[i][4])
         d_i_t_2.append(Output_2.values[i][3])
 
-    reqs = np.column_stack((req_n_1, req_n_2))
+    reqs = np.column_stack((reqID_1, reqID_2))
     dist = np.column_stack((dist_1, dist_2))
     d_avg = np.column_stack((d_avg_1, d_avg_2))
     d_i_t = np.column_stack((d_i_t_1, d_i_t_2))
@@ -69,12 +69,12 @@ def restart_check(DataFolderPath="", Filename="Output"):
     try:
         [
             datevec.append(datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S"))
-            for date in dt_str
+            for date in reqTsStr
         ]
     except:
         [
             datevec.append(datetime.datetime.strptime(date, "%d-%b-%Y %H:%M:%S"))
-            for date in dt_str
+            for date in reqTsStr
         ]
     datevec = np.array(datevec).reshape(-1, 1)
 
@@ -87,7 +87,7 @@ def restart_check(DataFolderPath="", Filename="Output"):
             for i in range(elapsed_time.shape[0])
         ]
     ).reshape(-1, 1)
-    return reqs, dt_str, datevec, elapsed_time_sec, dist, d_avg, d_i_t
+    return reqs, reqTsStr, datevec, elapsed_time_sec, dist, d_avg, d_i_t
 
 
 # Reading the data
@@ -95,7 +95,7 @@ reqs, dt_str, datevec, elapsed_time_sec, dist, d_avg, d_i_t = restart_check()
 
 # Plotting
 # sns.set()
-plt.figure(1, figsize=(20, 10))
+plt.figure(1, figsize=(15, 5))
 Axis_Range = [
     elapsed_time_sec[0],
     elapsed_time_sec[-1],
@@ -119,14 +119,35 @@ Y = d_i_t[chop[0] : chop[1], 1].reshape(-1, 1)
 plt.plot(X, Y, "r.")
 
 t0 = datevec[chop[0]][0]
-labels = [
-    str(
-        (t0 + datetime.timedelta(hours=int(i), minutes=-t0.minute, seconds=-t0.second))
-    )[:-3]
-    for i in range(0, 7 * 24 + 8, 8)
-]
 if axis_mode == "FullWeek":
-    plt.xticks(np.linspace(0, 60 * 60 * 24 * 7, 3 * 7 + 1), labels=labels)
+    labels = [
+        str(
+            (
+                t0
+                + datetime.timedelta(
+                    hours=int(i), minutes=-t0.minute, seconds=-t0.second
+                )
+            )
+        )[:-3]
+        for i in range(0, 7 * 24 + 8, 8)
+    ]
+    plt.xticks(
+        np.linspace(0, 60 * 60 * 24 * 7, len(range(0, 7 * 24 + 8, 8))), labels=labels
+    )
+elif axis_mode == "FullDay":
+    labels = [
+        str(
+            (
+                t0
+                + datetime.timedelta(
+                    hours=int(i), minutes=-t0.minute, seconds=-t0.second
+                )
+            )
+        )[:-3]
+        for i in range(0, 1 * 24 + 1, 1)
+    ]
+    xticks = np.linspace(0, 60 * 60 * 24, len(range(0, 1 * 24 + 1, 1)))
+    plt.xticks(xticks, labels=labels)
 
 plt.xticks(rotation=45)
 plt.grid()
