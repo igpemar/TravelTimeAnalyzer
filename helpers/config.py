@@ -6,7 +6,7 @@ import configparser
 HOME = (55.688519, 12.528168)  # GPS Coordinates in decimal degrees DDD.DDDDD
 WORK = (55.672162, 12.585666)  # GPS Coordinates in decimal degrees DDD.DDDDD
 
-DATA_DUMP_FREQUENCY = 10  # In seconds (integer)
+DATA_DUMP_FREQUENCY = 1  # In seconds (integer)
 
 HIGH_SAMPLING_TIME = 1  # In seconds Integer
 LOW_SAMPLING_TIME = 1200  # In Seconds Integer
@@ -17,7 +17,7 @@ Req_send = 1
 
 
 class Config:
-    def __init__(self):
+    def __init__(self, REQ_SEND):
         self.HOME = HOME
         self.WORK = WORK
         self.DATA_DUMP_FREQUENCY = DATA_DUMP_FREQUENCY
@@ -29,6 +29,7 @@ class Config:
         self.RETRY_INTERVAL = 1  # seconds
         self.RETRY_COUNTER = 1
         self.RETRY_MAX_TRIES = 5
+        self.REQ_SEND = REQ_SEND
 
     def initiateAPIkey(
         self,
