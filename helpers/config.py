@@ -24,7 +24,7 @@ class Config:
         self.HIGH_SAMPLING_FREQUENCY = HIGH_SAMPLING_TIME
         self.LOW_SAMPLING_FREQUENCY = LOW_SAMPLING_TIME
         self.START_TIME = START_TIME
-        self.API_KEY = ""
+        self.initiateAPIkey()
 
         self.RETRY_INTERVAL = 1  # seconds
         self.RETRY_COUNTER = 1
