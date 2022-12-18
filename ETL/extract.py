@@ -112,6 +112,42 @@ class TravelTime:
         self.reqID.append(self.reqID[-1] + incr)
 
 
+class GoogleMapsRequests:
+    def __init__(self):
+        self.h2wRequest = ""
+        self.workh2wRequest = ""
+
+    def build_request(self, config) -> tuple[str]:
+        outputFormat = "json"
+        requestStart = "https://maps.googleapis.com/maps/api/distancematrix/"
+        startPoint = str(config.HOME[0]) + "%2C" + str(config.HOME[1])
+        endPoint = str(config.WORK[0]) + "%2C" + str(config.WORK[1])
+        self.h2wRequest = (
+            requestStart
+            + outputFormat
+            + "?destinations="
+            + endPoint
+            + "&origins="
+            + startPoint
+            + "&mode=driving"
+            + "&departure_time=now"
+            + "&key="
+            + config.API_KEY
+        )
+        self.w2hRequest = (
+            requestStart
+            + outputFormat
+            + "?destinations="
+            + startPoint
+            + "&origins="
+            + endPoint
+            + "&mode=driving"
+            + "&departure_time=now"
+            + "&key="
+            + config.API_KEY
+        )
+
+
 def restart_check(FORCED_INPUT="", sourcedata="Output"):
     while True:
         if FORCED_INPUT != "":
@@ -124,15 +160,10 @@ def restart_check(FORCED_INPUT="", sourcedata="Output"):
         if s == "A" or s == "A":
             sys.exit()
         elif s == "y" or s == "Y":
-            Restart_Flag = 1
             results.home2work.reqID = [1]
             results.work2home.reqID = [2]
-            return (
-                results,
-                Restart_Flag,
-            )
+            return results
         elif s == "n" or s == "N":
-            Restart_Flag = 0
             results.loadH2WFromCSV(sourcedata + "_h2w.csv")
             results.loadW2FFromCSV(sourcedata + "_w2h.csv")
             results.home2work.reqID = list(
@@ -142,43 +173,7 @@ def restart_check(FORCED_INPUT="", sourcedata="Output"):
                 range(2, len(results.home2work.distanceAVG) * 2 + 3, 2)
             )
 
-            return (
-                results,
-                Restart_Flag,
-            )
-
-
-def build_request(config) -> tuple[str]:
-    outputFormat = "json"
-    requestStart = "https://maps.googleapis.com/maps/api/distancematrix/"
-    startPoint = str(config.HOME[0]) + "%2C" + str(config.HOME[1])
-    endPoint = str(config.WORK[0]) + "%2C" + str(config.WORK[1])
-    h2wRequest = (
-        requestStart
-        + outputFormat
-        + "?destinations="
-        + endPoint
-        + "&origins="
-        + startPoint
-        + "&mode=driving"
-        + "&departure_time=now"
-        + "&key="
-        + config.API_KEY
-    )
-    w2hRequest = (
-        requestStart
-        + outputFormat
-        + "?destinations="
-        + startPoint
-        + "&origins="
-        + endPoint
-        + "&mode=driving"
-        + "&departure_time=now"
-        + "&key="
-        + config.API_KEY
-    )
-
-    return h2wRequest, w2hRequest
+            return results
 
 
 def sendRequest(config, request, reqID):
