@@ -17,7 +17,7 @@ def saveTravelStats2txt(
         headers = ""
     else:
         headers = "Req #. ; Timestamp ; Distance [km] ; Duration (incl.traffic) [min] ; Duration (excl.traffic) [min]"
-    with open(path_to_file, "ab") as f:
+    with open(path_to_file, "a") as f:
         np.savetxt(
             f,
             h2wData,
@@ -32,7 +32,7 @@ def saveTravelStats2txt(
         headers = ""
     else:
         headers = "Req #. ; Timestamp ; Distance [km] ; Duration (incl.traffic) [min] ; Duration (excl.traffic) [min]"
-    with open(path_to_file, "ab") as g:
+    with open(path_to_file, "a") as g:
         np.savetxt(
             g,
             w2hData,
