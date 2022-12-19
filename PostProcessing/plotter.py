@@ -4,181 +4,163 @@ import matplotlib.pyplot as plt
 import time
 import pandas
 import datetime
-import seaborn as sns
+import ETL.extract
 
-axis_mode = "Running"  # Choose between "Running", "FullWeek" and "FullDay"
-
-DISPLAY_IMAGE = True
-SAVE_IMAGE = True
-SAVE_LOCATION = "Plot.jgp"
+axis_mode = "FullDay"  # Choose between "Running", "FullWeek" and "FullDay"
 
 
-def initialize_plot_axes(
-    range="",
-    XLABEL="X label",
-    XLABFS=15,
-    YLABEL="Y label",
-    YLABFS=15,
-    XTICKFS=10,
-    YTICKFS=10,
-):
-
-    # Plotting the dataset
-    # sns.set()
-    if range != "":
-        plt.axis(range)
-    plt.xticks(fontsize=XTICKFS)
-    plt.yticks(fontsize=YTICKFS)
-    plt.xlabel(XLABEL, fontsize=XLABFS)
-    plt.ylabel(YLABEL, fontsize=YLABFS)
-
-
-def restart_check(DataFolderPath="", Filename="Output"):
-    reqID_1, reqID_2, reqTsStr, d_i_t_1, d_i_t_2, d_avg_1, d_avg_2, dist_1, dist_2 = (
-        [],
-        [],
-        [],
-        [],
-        [],
-        [],
-        [],
-        [],
-        [],
-    )
-    if DataFolderPath:
-        if DataFolderPath[-1] != "/":
-            DataFolderPath += "/"
-    try:
-        Output_1 = pandas.read_csv(DataFolderPath + Filename + "_h2w.csv", sep=";")
-        Output_2 = pandas.read_csv(DataFolderPath + Filename + "_w2h.csv", sep=";")
-    except pandas.errors.EmptyDataError:
-        return [], [], [], [], [], [], []
-
-    for i in range(Output_1.shape[0]):
-        reqID_1.append(Output_1.values[i][0])
-        reqTsStr.append(Output_1.values[i][1].strip())
-        dist_1.append(Output_1.values[i][2])
-        d_avg_1.append(Output_1.values[i][4])
-        d_i_t_1.append(Output_1.values[i][3])
-
-    for i in range(Output_2.shape[0]):
-        reqID_2.append(Output_2.values[i][0])
-        dist_2.append(Output_2.values[i][2])
-        d_avg_2.append(Output_2.values[i][4])
-        d_i_t_2.append(Output_2.values[i][3])
-
-    reqs = np.column_stack((reqID_1, reqID_2))
-    dist = np.column_stack((dist_1, dist_2))
-    d_avg = np.column_stack((d_avg_1, d_avg_2))
-    d_i_t = np.column_stack((d_i_t_1, d_i_t_2))
-
-    datevec, elapsed_time = [], []
-    try:
-        [
-            datevec.append(datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S"))
-            for date in reqTsStr
-        ]
-    except:
-        [
-            datevec.append(datetime.datetime.strptime(date, "%d-%b-%Y %H:%M:%S"))
-            for date in reqTsStr
-        ]
-    datevec = np.array(datevec).reshape(-1, 1)
-
-    [elapsed_time.append(t - datevec[0]) for t in datevec]
-
-    elapsed_time = np.array(elapsed_time).reshape(-1, 1)
-    elapsed_time_sec = np.array(
-        [
-            elapsed_time[i][0].days * 24 * 3600 + elapsed_time[i][0].seconds
-            for i in range(elapsed_time.shape[0])
-        ]
-    ).reshape(-1, 1)
-    return reqs, reqTsStr, datevec, elapsed_time_sec, dist, d_avg, d_i_t
-
-
-def postProcess(
-    DISPLAY_IMAGE=True, SAVE_IMAGE=False, SAVE_LOCATION="Plot.jgp", sampling=0
-):
+def postProcess(SAVE_LOCATION="Plot.jgp", sampling=0):
+    if not checkAxisMode(axis_mode):
+        raise Exception("wrong axis_mode")
     while True:
         # Reading the data
-        reqs, dt_str, datevec, elapsed_time_sec, dist, d_avg, d_i_t = restart_check()
-        if reqs == []:
+        TravelStats = ETL.extract.restart_check("N", "Output")
+        if TravelStats.home2work.distanceAVG == []:
             continue
-        if not DISPLAY_IMAGE:
-            matplotlib.use("agg")
+
+        matplotlib.use("agg")
+
         # Plotting
-        # sns.set()
-        if DISPLAY_IMAGE:
-            plt.close(1)
-        plt.figure(1, figsize=(15, 5))
-        if len(elapsed_time_sec <= 1):
-            Axis_Range = ""
-        else:
-            Axis_Range = [
-                elapsed_time_sec[0],
-                elapsed_time_sec[-1],
-                0,
-                40,
-            ]
-        initialize_plot_axes(
-            range=Axis_Range,
+        (ax1, ax2) = createFigure()
+        initializeAxes(
+            ax1,
+            range="",
             XLABEL="Elapsed Time [s]",
-            XLABFS=15,
-            YLABEL="Comute Time  [min]",
-            YLABFS=15,
-            XTICKFS=10,
-            YTICKFS=10,
+            XLAB_FS=15,
+            YLABEL="Commute Time (incl. traffic)  [min]",
+            YLAB_FS=15,
         )
-        X = elapsed_time_sec - elapsed_time_sec[0]
-        Y = d_i_t[:, 0].reshape(-1, 1)
-        plt.plot(X, Y, "b.")
+        initializeAxes(
+            ax2,
+            range="",
+            XLABEL="Elapsed Time [s]",
+            XLAB_FS=15,
+            YLABEL="Commute Time (excl. traffic)  [min]",
+            YLAB_FS=15,
+        )
 
-        Y = d_i_t[:, 1].reshape(-1, 1)
-        plt.plot(X, Y, "r.")
+        # Plotting duration including traffic vs elapsed time in seconds
+        X, Y1, Y2 = parseDurationInclTraffic2XYPlot(TravelStats)
+        ax1.plot(X, Y1, "b.")
+        ax1.plot(X, Y2, "r.")
+        X, Y1, Y2 = parseDurationExclTraffic2XYPlot(TravelStats)
+        ax2.plot(X, Y1, "b.")
+        ax2.plot(X, Y2, "r.")
 
-        t0 = datevec[0][0]
-        if axis_mode == "FullWeek":
-            labels = [
-                str(
-                    (
-                        t0
-                        + datetime.timedelta(
-                            hours=int(i), minutes=-t0.minute, seconds=-t0.second
-                        )
-                    )
-                )[:-3]
-                for i in range(0, 7 * 24 + 8, 8)
-            ]
-            plt.xticks(
-                np.linspace(0, 60 * 60 * 24 * 7, len(range(0, 7 * 24 + 8, 8))),
-                labels=labels,
-            )
-        elif axis_mode == "FullDay":
-            labels = [
-                str(
-                    (
-                        t0
-                        + datetime.timedelta(
-                            hours=int(i), minutes=-t0.minute, seconds=-t0.second
-                        )
-                    )
-                )[:-3]
-                for i in range(0, 1 * 24 + 1, 1)
-            ]
-            xticks = np.linspace(0, 60 * 60 * 24, len(range(0, 1 * 24 + 1, 1)))
-            plt.xticks(xticks, labels=labels)
+        # Set xticks and labels
+        XTicks = getXTicks(axis_mode)
+        t0 = TravelStats.home2work.timestampDT[0]
+        XTicksLabels = getXLabels(t0, axis_mode)
+        if len(XTicks) > 0:
+            ax1.set_xticks(XTicks, labels=XTicksLabels, rotation=45)
+            ax2.set_xticks(XTicks, labels=XTicksLabels, rotation=45)
 
-        plt.xticks(rotation=45)
-        plt.grid()
-        plt.tight_layout()
-        if DISPLAY_IMAGE:
-            plt.show()
+        ax1.grid()
+        ax2.grid()
+        # plt.tight_layout()
 
-        if SAVE_IMAGE:
-            plt.savefig(SAVE_LOCATION)
+        plt.savefig(SAVE_LOCATION)
 
         if sampling > 0:
             time.sleep(sampling)
         else:
             break
+
+
+def initializeAxes(
+    ax: matplotlib.axes,
+    range="",
+    XLABEL="X label",
+    YLABEL="Y label",
+    XLAB_FS=15,
+    YLAB_FS=15,
+):
+    if range != "":
+        ax.axis(range)
+    ax.set_xlabel(XLABEL, fontsize=XLAB_FS)
+    ax.set_ylabel(YLABEL, fontsize=YLAB_FS)
+
+
+def buildOutputsSourcePaths(SourcePath: str, Filename: str):
+    if SourcePath:
+        if SourcePath[-1] != "/":
+            SourcePath += "/"
+
+    return (
+        SourcePath + Filename + "_" + "_h2w.csv",
+        SourcePath + Filename + "_" + "_w2h.csv",
+    )
+
+
+def createFigure():
+    plt.close("all")
+    _, (ax1, ax2) = plt.subplots(1, 2, num=1, figsize=(20, 10))
+    # plt.figure(1, figsize=(15, 5))
+    return (ax1, ax2)
+
+
+def parseDurationInclTraffic2XYPlot(TravelStats: ETL.extract.TravelStats):
+    timestamp = TravelStats.home2work.timestampDT
+    t0 = timestamp[0]
+    elapsedTimeSeconds = [(x - t0).total_seconds() for x in timestamp]
+    durationInclTraffich2w = TravelStats.home2work.durationInclTraffic
+    durationInclTrafficw2h = TravelStats.work2home.durationInclTraffic
+    return elapsedTimeSeconds, durationInclTraffich2w, durationInclTrafficw2h
+
+
+def parseDurationExclTraffic2XYPlot(TravelStats: ETL.extract.TravelStats):
+    timestamp = TravelStats.home2work.timestampDT
+    t0 = timestamp[0]
+    elapsedTimeSeconds = [(x - t0).total_seconds() for x in timestamp]
+    durationExclTraffich2w = TravelStats.home2work.durationEnclTraffic
+    durationExclTrafficw2h = TravelStats.work2home.durationEnclTraffic
+    return elapsedTimeSeconds, durationExclTraffich2w, durationExclTrafficw2h
+
+
+def getXTicks(axis_mode: str):
+    if axis_mode == "FullWeek":
+        return np.linspace(0, 60 * 60 * 24 * 7, len(range(0, 7 * 24 + 8, 8)))
+    elif axis_mode == "FullDay":
+        return np.linspace(0, 60 * 60 * 24, len(range(0, 1 * 24 + 1, 1)))
+    else:
+        return []
+
+
+def getXLabels(t0, axis_mode: str):
+    if axis_mode == "FullWeek":
+        return [
+            str(
+                (
+                    t0
+                    + datetime.timedelta(
+                        hours=int(i), minutes=-t0.minute, seconds=-t0.second
+                    )
+                )
+            )[:-3]
+            for i in range(0, 7 * 24 + 8, 8)
+        ]
+    elif axis_mode == "FullDay":
+        return [
+            str(
+                (
+                    t0
+                    + datetime.timedelta(
+                        hours=int(i), minutes=-t0.minute, seconds=-t0.second
+                    )
+                )
+            )[:-3]
+            for i in range(0, 1 * 24 + 1, 1)
+        ]
+    else:
+        return []
+
+
+def checkAxisMode(axis_mode: str) -> bool:
+    if axis_mode == "Running":
+        return True
+    elif axis_mode == "FullDay":
+        return True
+    elif axis_mode == "FullWeek":
+        return True
+    else:
+        return False

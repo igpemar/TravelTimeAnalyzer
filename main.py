@@ -36,8 +36,9 @@ if __name__ == "__main__":
 
     # Start PostProcessing service
     if config.POST_PROCESSING:
+        time.sleep(1)
         t2 = threading.Thread(
             target=PostProcessing.plotter.postProcess,
-            args=(False, True, "Output.jpg", config.POST_PROCESSING_SAMPLING_TIME),
+            args=("Output.jpg", config.POST_PROCESSING_SAMPLING_TIME),
         )
         t2.start()

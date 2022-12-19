@@ -77,33 +77,39 @@ class TravelTime:
             data = pandas.read_csv(filename, sep=";")
         except:
             print(
-                f"Error reading from {filename} were found, impossible to restart from existing data, exiting ..."
+                f"Error reading from {filename}, impossible to restart from existing data"
             )
-            sys.exit()
+            return
 
-        print(f"Succesfully loaded {data.shape[0]} rows from {filename}")
+        # print(f"Succesfully loaded {data.shape[0]} rows from {filename}")
         for i in range(data.shape[0]):
             self.reqID.append(data.values[i][0])
             self.timestampSTR.append(data.values[i][1].strip())
+            self.timestampDT.append(
+                datetime.datetime.strptime(
+                    data.values[i][1].strip(), "%Y-%m-%d %H:%M:%S"
+                )
+            )
             self.distanceAVG.append(data.values[i][2])
             self.durationInclTraffic.append(data.values[i][3])
             self.durationEnclTraffic.append(data.values[i][4])
 
     def setTimeStamps(self, timestamp):
-        self.timestampSTR.append(
-            str(timestamp.year)
-            + "-"
-            + f"{timestamp.month:02}"
-            + "-"
-            + f"{timestamp.day:02}"
-            + " "
-            + f"{timestamp.hour:02}"
-            + ":"
-            + f"{timestamp.minute:02}"
-            + ":"
-            + f"{timestamp.second:02}"
-        )
+        # self.timestampSTR.append(
+        #     str(timestamp.year)
+        #     + "-"
+        #     + f"{timestamp.month:02}"
+        #     + "-"
+        #     + f"{timestamp.day:02}"
+        #     + " "
+        #     + f"{timestamp.hour:02}"
+        #     + ":"
+        #     + f"{timestamp.minute:02}"
+        #     + ":"
+        #     + f"{timestamp.second:02}"
+        # )
         self.timestampDT.append(timestamp)
+        self.timestampSTR.append(timestamp.strftime("%Y-%m-%d %H:%M:%S"))
 
     def setReqID(self, reqID: int):
         self.reqID = [reqID]
@@ -148,7 +154,7 @@ class GoogleMapsRequests:
         )
 
 
-def restart_check(FORCED_INPUT="", sourcedata="Output"):
+def restart_check(FORCED_INPUT="", sourcedata="Output") -> TravelStats:
     while True:
         if FORCED_INPUT != "":
             s = FORCED_INPUT
