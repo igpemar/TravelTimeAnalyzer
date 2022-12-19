@@ -16,7 +16,7 @@ LOW_SAMPLING_TIME = 0.1  # In seconds (integer)
 START_TIME = datetime.datetime(2022, 12, 12, 18, 9, 0)
 
 # Post Processing
-POST_PROCESSING = True
+POST_PROCESSING = False
 POST_PROCESSING_SAMPLING_TIME = 0.5
 
 
