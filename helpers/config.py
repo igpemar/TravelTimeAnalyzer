@@ -3,32 +3,45 @@ import datetime
 import configparser
 
 
+# Where to
 HOME = (55.688519, 12.528168)  # GPS Coordinates in decimal degrees DDD.DDDDD
 WORK = (55.672162, 12.585666)  # GPS Coordinates in decimal degrees DDD.DDDDD
 
+# Data storage
 DATA_DUMP_FREQUENCY = 1  # In seconds (integer)
 
-HIGH_SAMPLING_TIME = 1  # In seconds Integer
-LOW_SAMPLING_TIME = 1200  # In Seconds Integer
-
+# Request frequency
+HIGH_SAMPLING_TIME = 0.1  # In seconds (integer)
+LOW_SAMPLING_TIME = 0.1  # In seconds (integer)
 START_TIME = datetime.datetime(2022, 12, 12, 18, 9, 0)
 
-Req_send = 1
+# Post Processing
+POST_PROCESSING = True
+POST_PROCESSING_SAMPLING_TIME = 0.5
 
 
 class Config:
-    def __init__(self, REQ_SEND):
+    def __init__(self, REQ_SEND: bool):
+        # Where to
         self.HOME = HOME
         self.WORK = WORK
+
+        # Request Frequency
         self.DATA_DUMP_FREQUENCY = DATA_DUMP_FREQUENCY
         self.HIGH_SAMPLING_FREQUENCY = HIGH_SAMPLING_TIME
         self.LOW_SAMPLING_FREQUENCY = LOW_SAMPLING_TIME
         self.START_TIME = START_TIME
         self.initiateAPIkey()
 
+        # Request retry frequency
         self.RETRY_INTERVAL = 1  # seconds
         self.RETRY_COUNTER = 1
         self.RETRY_MAX_TRIES = 5
+
+        # Post processing
+        self.POST_PROCESSING = POST_PROCESSING
+        self.POST_PROCESSING_SAMPLING_TIME = POST_PROCESSING_SAMPLING_TIME
+
         self.REQ_SEND = REQ_SEND
 
     def initiateAPIkey(

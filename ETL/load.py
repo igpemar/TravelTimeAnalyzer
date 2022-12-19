@@ -1,8 +1,10 @@
 import numpy as np
-import ETL.transform
+import ETL.transform, ETL.extract
 
 
-def saveTravelStats2txt(TravelStats, destination="Output"):
+def saveTravelStats2txt(
+    TravelStats: ETL.extract.TravelStats, destination: str = "Output"
+):
     MyList1 = ETL.transform.travelTimeColumnStack(TravelStats.home2work)
     MyList2 = ETL.transform.travelTimeColumnStack(TravelStats.work2home)
     print(

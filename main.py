@@ -9,8 +9,7 @@ import ETL.extract, ETL.transform, ETL.load, ETL.pipeline
 
 REQ_SEND = 0
 RESTART_INPUT = "Y"
-POST_PROCESSING = True
-POST_PROCESSING_SAMPLING_TIME = 1
+
 
 if __name__ == "__main__":
     # Get configuration variables
@@ -31,13 +30,14 @@ if __name__ == "__main__":
     print("Starting now at: ", datetime.datetime.now())
 
     # Start ETL Pipeline
+    # ETL.pipeline.ETLPipeline(TravelStats, config)
     t1 = threading.Thread(target=ETL.pipeline.ETLPipeline, args=(TravelStats, config))
     t1.start()
 
     # Start PostProcessing service
-    if POST_PROCESSING:
+    if config.POST_PROCESSING:
         t2 = threading.Thread(
             target=PostProcessing.plotter.postProcess,
-            args=(False, True, "Output.jpg", POST_PROCESSING_SAMPLING_TIME),
+            args=(False, True, "Output.jpg", config.POST_PROCESSING_SAMPLING_TIME),
         )
         t2.start()
