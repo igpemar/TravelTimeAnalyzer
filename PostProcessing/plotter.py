@@ -6,7 +6,7 @@ import pandas
 import datetime
 import ETL.extract
 
-axis_mode = "FullDay"  # Choose between "Running", "FullWeek" and "FullDay"
+axis_mode = "Running"  # Choose between "Running", "FullWeek" and "FullDay"
 
 
 def postProcess(SAVE_LOCATION="Plot.jgp", sampling=0):
@@ -35,7 +35,7 @@ def postProcess(SAVE_LOCATION="Plot.jgp", sampling=0):
             range="",
             XLABEL="Elapsed Time [s]",
             XLAB_FS=15,
-            YLABEL="Commute Time (excl. traffic)  [min]",
+            YLABEL="Distance  [km]",
             YLAB_FS=15,
         )
 
@@ -43,7 +43,9 @@ def postProcess(SAVE_LOCATION="Plot.jgp", sampling=0):
         X, Y1, Y2 = parseDurationInclTraffic2XYPlot(TravelStats)
         ax1.plot(X, Y1, "b.")
         ax1.plot(X, Y2, "r.")
-        X, Y1, Y2 = parseDurationExclTraffic2XYPlot(TravelStats)
+
+        # Plotting distance vs elapsed time in seconds
+        X, Y1, Y2 = parseDistance2XYPlot(TravelStats)
         ax2.plot(X, Y1, "b.")
         ax2.plot(X, Y2, "r.")
 
@@ -115,6 +117,15 @@ def parseDurationExclTraffic2XYPlot(TravelStats: ETL.extract.TravelStats):
     durationExclTraffich2w = TravelStats.home2work.durationEnclTraffic
     durationExclTrafficw2h = TravelStats.work2home.durationEnclTraffic
     return elapsedTimeSeconds, durationExclTraffich2w, durationExclTrafficw2h
+
+
+def parseDistance2XYPlot(TravelStats: ETL.extract.TravelStats):
+    timestamp = TravelStats.home2work.timestampDT
+    t0 = timestamp[0]
+    elapsedTimeSeconds = [(x - t0).total_seconds() for x in timestamp]
+    distanceh2w = TravelStats.home2work.distanceAVG
+    distancew2h = TravelStats.work2home.distanceAVG
+    return elapsedTimeSeconds, distanceh2w, distancew2h
 
 
 def getXTicks(axis_mode: str):
