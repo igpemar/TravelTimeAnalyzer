@@ -6,6 +6,7 @@ import pandas
 import random
 import requests
 import datetime
+from filelock import FileLock
 
 
 class TravelStats:
@@ -154,7 +155,7 @@ class GoogleMapsRequests:
         )
 
 
-def restart_check(FORCED_INPUT="", sourcedata="Output") -> TravelStats:
+def restartCheck(FORCED_INPUT="", sourcedata="Output") -> TravelStats:
     while True:
         if FORCED_INPUT != "":
             s = FORCED_INPUT
@@ -182,8 +183,20 @@ def restart_check(FORCED_INPUT="", sourcedata="Output") -> TravelStats:
             results.work2home.reqID = list(
                 range(2, len(results.home2work.distanceAVG) * 2 + 3, 2)
             )
-
             return results
+
+
+def fetchData(sourcedata="Output") -> TravelStats:
+    results = TravelStats()
+    results.loadH2WFromCSV(sourcedata + "_h2w.csv")
+    results.loadW2FFromCSV(sourcedata + "_w2h.csv")
+    results.home2work.reqID = list(
+        range(1, len(results.home2work.distanceAVG) * 2 + 2, 2)
+    )
+    results.work2home.reqID = list(
+        range(2, len(results.home2work.distanceAVG) * 2 + 3, 2)
+    )
+    return results
 
 
 def sendRequest(config, request, reqID):

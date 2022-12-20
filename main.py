@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     # Checking for restart
     print("Checking for restart...")
-    TravelStats = ETL.extract.restart_check(RESTART_INPUT)
+    TravelStats = ETL.extract.restartCheck(RESTART_INPUT)
 
     # Checking for start time
     while helpers.config.isItTimeToStart(config.START_TIME):

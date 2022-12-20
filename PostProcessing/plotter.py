@@ -14,7 +14,7 @@ def postProcess(SAVE_LOCATION="Plot.jgp", sampling=0):
         raise Exception("wrong axis_mode")
     while True:
         # Reading the data
-        TravelStats = ETL.extract.restart_check("N", "Output")
+        TravelStats = ETL.extract.fetchData("Output")
         if TravelStats.home2work.isFirstWriteCycle:
             continue
 
@@ -24,7 +24,6 @@ def postProcess(SAVE_LOCATION="Plot.jgp", sampling=0):
         (ax1, ax2) = createFigure()
         initializeAxes(
             ax1,
-            range="",
             XLABEL="Elapsed Time [s]",
             XLAB_FS=15,
             YLABEL="Commute Time (incl. traffic)  [min]",
@@ -32,7 +31,6 @@ def postProcess(SAVE_LOCATION="Plot.jgp", sampling=0):
         )
         initializeAxes(
             ax2,
-            range="",
             XLABEL="Elapsed Time [s]",
             XLAB_FS=15,
             YLABEL="Distance  [km]",
@@ -77,14 +75,11 @@ def postProcess(SAVE_LOCATION="Plot.jgp", sampling=0):
 
 def initializeAxes(
     ax: matplotlib.axes,
-    range="",
     XLABEL="X label",
     YLABEL="Y label",
     XLAB_FS=15,
     YLAB_FS=15,
 ):
-    if range != "":
-        ax.axis(range)
     ax.set_xlabel(XLABEL, fontsize=XLAB_FS)
     ax.set_ylabel(YLABEL, fontsize=YLAB_FS)
 
@@ -115,9 +110,9 @@ def parseDurationInclTraffic2XYPlot(TravelStats: ETL.extract.TravelStats):
     timestamp = TravelStats.home2work.timestampDT
     t0 = timestamp[0]
     elapsedTimeSeconds = [(x - t0).total_seconds() for x in timestamp]
-    durationInclTraffich2w = TravelStats.home2work.durationInclTraffic
-    durationInclTrafficw2h = TravelStats.work2home.durationInclTraffic
-    return elapsedTimeSeconds, durationInclTraffich2w, durationInclTrafficw2h
+    durationInclTraffic_h2w = TravelStats.home2work.durationInclTraffic
+    durationInclTraffic_w2h = TravelStats.work2home.durationInclTraffic
+    return elapsedTimeSeconds, durationInclTraffic_h2w, durationInclTraffic_w2h
 
 
 def parseDurationExclTraffic2XYPlot(TravelStats: ETL.extract.TravelStats):
