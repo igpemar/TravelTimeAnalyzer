@@ -16,6 +16,7 @@ def storeRespDataNP(
         )
     )
     TravelTime.durationEnclTraffic.append(round(root["duration"]["value"] / 60.0, 2))
+    TravelTime.isFirstWriteCycle = False
 
 
 def travelTimeColumnStack(TravelTime):

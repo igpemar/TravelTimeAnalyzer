@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import time
-import pandas
+import math
 import datetime
 import ETL.extract
 
@@ -15,7 +15,7 @@ def postProcess(SAVE_LOCATION="Plot.jgp", sampling=0):
     while True:
         # Reading the data
         TravelStats = ETL.extract.restart_check("N", "Output")
-        if TravelStats.home2work.distanceAVG == []:
+        if TravelStats.home2work.isFirstWriteCycle:
             continue
 
         matplotlib.use("agg")
@@ -43,11 +43,13 @@ def postProcess(SAVE_LOCATION="Plot.jgp", sampling=0):
         X, Y1, Y2 = parseDurationInclTraffic2XYPlot(TravelStats)
         ax1.plot(X, Y1, "b.")
         ax1.plot(X, Y2, "r.")
+        setYLim(ax1, Y1, Y2)
 
         # Plotting distance vs elapsed time in seconds
         X, Y1, Y2 = parseDistance2XYPlot(TravelStats)
         ax2.plot(X, Y1, "b.")
         ax2.plot(X, Y2, "r.")
+        setYLim(ax2, Y1, Y2)
 
         # Set xticks and labels
         XTicks = getXTicks(axis_mode)
@@ -81,6 +83,10 @@ def initializeAxes(
         ax.axis(range)
     ax.set_xlabel(XLABEL, fontsize=XLAB_FS)
     ax.set_ylabel(YLABEL, fontsize=YLAB_FS)
+
+
+def setYLim(ax, Y1, Y2):
+    ax.set_ylim((0, math.ceil(1.1 * max(max(Y1), max(Y2)))))
 
 
 def buildOutputsSourcePaths(SourcePath: str, Filename: str):

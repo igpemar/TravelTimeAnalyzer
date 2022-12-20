@@ -50,6 +50,7 @@ def ETLPipeline(
         ):
             ETL.load.saveTravelStats2txt(TravelStats)
             lastDataDump = datetime.datetime.now()
+            TravelStats.flushStats()
 
         # Incrementing request numbers
         TravelStats.incrementRequestIDs(2)

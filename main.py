@@ -10,7 +10,6 @@ import ETL.extract, ETL.transform, ETL.load, ETL.pipeline
 REQ_SEND = 0
 RESTART_INPUT = "Y"
 
-
 if __name__ == "__main__":
     # Get configuration variables
     config = helpers.config.Config(REQ_SEND)

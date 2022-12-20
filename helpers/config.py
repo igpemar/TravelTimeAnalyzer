@@ -8,16 +8,16 @@ HOME = (55.688519, 12.528168)  # GPS Coordinates in decimal degrees DDD.DDDDD
 WORK = (55.672162, 12.585666)  # GPS Coordinates in decimal degrees DDD.DDDDD
 
 # Data storage
-DATA_DUMP_FREQUENCY = 1  # In seconds (integer)
+DATA_DUMP_FREQUENCY = 0.5  # In seconds (integer)
 
 # Request frequency
-HIGH_SAMPLING_TIME = 0.1  # In seconds (integer)
-LOW_SAMPLING_TIME = 0.1  # In seconds (integer)
+HIGH_SAMPLING_TIME = 0.05  # In seconds (integer)
+LOW_SAMPLING_TIME = 0.05  # In seconds (integer)
 START_TIME = datetime.datetime(2022, 12, 12, 18, 9, 0)
 
 # Post Processing
-POST_PROCESSING = False
-POST_PROCESSING_SAMPLING_TIME = 0.5
+POST_PROCESSING = True
+POST_PROCESSING_SAMPLING_TIME = 1
 
 
 class Config:
