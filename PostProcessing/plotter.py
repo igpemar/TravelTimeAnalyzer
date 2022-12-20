@@ -41,12 +41,16 @@ def postProcess(SAVE_LOCATION="Plot.jgp", sampling=0):
 
         # Plotting duration including traffic vs elapsed time in seconds
         X, Y1, Y2 = parseDurationInclTraffic2XYPlot(TravelStats)
+        if not checkForDataCompletion(X, Y1, Y2):
+            continue
         ax1.plot(X, Y1, "b.")
         ax1.plot(X, Y2, "r.")
         setYLim(ax1, Y1, Y2)
 
         # Plotting distance vs elapsed time in seconds
         X, Y1, Y2 = parseDistance2XYPlot(TravelStats)
+        if not checkForDataCompletion(X, Y1, Y2):
+            continue
         ax2.plot(X, Y1, "b.")
         ax2.plot(X, Y2, "r.")
         setYLim(ax2, Y1, Y2)
@@ -181,3 +185,7 @@ def checkAxisMode(axis_mode: str) -> bool:
         return True
     else:
         return False
+
+
+def checkForDataCompletion(X, Y1, Y2):
+    return len(X) == len(Y1) and len(X) == len(Y2)
