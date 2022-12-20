@@ -1,7 +1,9 @@
+import os
 import sys
 import json
 import time
 import pandas
+import random
 import requests
 import datetime
 
@@ -30,8 +32,8 @@ class TravelStats:
     def flushStats(
         self,
     ):
-        self.home2work.flushTravelTime()
-        self.work2home.flushTravelTime()
+        self.home2work.flushStats()
+        self.work2home.flushStats()
 
     def incrementRequestIDs(self, inc: int):
         if not self.home2work.reqID:
@@ -62,15 +64,23 @@ class TravelTime:
         self.distanceAVG = []
         self.durationInclTraffic = []
         self.durationEnclTraffic = []
+        self.isFirstWriteCycle = True
 
-    def flushTravelTime(
+    def flushStats(
         self,
     ):
-        self.reqID = []
-        c = []
+        self.restartReqID()
+        self.timestampSTR = []
+        self.timestampDT = []
         self.distanceAVG = []
         self.durationInclTraffic = []
         self.durationEnclTraffic = []
+        self.isFirstWriteCycle = True
+
+    def restartReqID(
+        self,
+    ):
+        self.reqID = [self.reqID[-1]]
 
     def loadOutputFromCSV(self, filename: str):
         try:
@@ -81,7 +91,6 @@ class TravelTime:
             )
             return
 
-        # print(f"Succesfully loaded {data.shape[0]} rows from {filename}")
         for i in range(data.shape[0]):
             self.reqID.append(data.values[i][0])
             self.timestampSTR.append(data.values[i][1].strip())
@@ -93,21 +102,9 @@ class TravelTime:
             self.distanceAVG.append(data.values[i][2])
             self.durationInclTraffic.append(data.values[i][3])
             self.durationEnclTraffic.append(data.values[i][4])
+            self.isFirstWriteCycle = False
 
     def setTimeStamps(self, timestamp):
-        # self.timestampSTR.append(
-        #     str(timestamp.year)
-        #     + "-"
-        #     + f"{timestamp.month:02}"
-        #     + "-"
-        #     + f"{timestamp.day:02}"
-        #     + " "
-        #     + f"{timestamp.hour:02}"
-        #     + ":"
-        #     + f"{timestamp.minute:02}"
-        #     + ":"
-        #     + f"{timestamp.second:02}"
-        # )
         self.timestampDT.append(timestamp)
         self.timestampSTR.append(timestamp.strftime("%Y-%m-%d %H:%M:%S"))
 
@@ -115,7 +112,10 @@ class TravelTime:
         self.reqID = [reqID]
 
     def incrementReqID(self, incr: int):
-        self.reqID.append(self.reqID[-1] + incr)
+        if self.isFirstWriteCycle:
+            self.reqID[0] += incr
+        else:
+            self.reqID.append(self.reqID[-1] + incr)
 
 
 class GoogleMapsRequests:
@@ -166,6 +166,10 @@ def restart_check(FORCED_INPUT="", sourcedata="Output") -> TravelStats:
         if s == "A" or s == "A":
             sys.exit()
         elif s == "y" or s == "Y":
+            if os.path.exists(sourcedata + "_h2w.csv"):
+                os.remove(sourcedata + "_h2w.csv")
+            if os.path.exists(sourcedata + "_w2h.csv"):
+                os.remove(sourcedata + "_w2h.csv")
             results.home2work.reqID = [1]
             results.work2home.reqID = [2]
             return results
@@ -229,12 +233,31 @@ def handleResponse(response) -> bool:
 
 
 def mockh2wResponseAsJson() -> str:
-    return json.loads(
-        '{"rows":[{"elements":[{"duration_in_traffic": {"value": 900},"duration": {"value": 800},"distance": {"value": 5100}}]}]}'
-    )
+    duration_in_traffic = 900 + random.randint(-50, 50)
+    duration = 800 + random.randint(-5, 5)
+    distance = 5100 + random.randint(-1, 2) * 50
+    return buildJson(duration_in_traffic, duration, distance)
 
 
 def mockw2hResponseAsJson() -> str:
-    return json.loads(
-        '{"rows":[{"elements":[{"duration_in_traffic": {"value": 950},"duration": {"value": 850},"distance": {"value": 5750}}]}]}'
-    )
+    duration_in_traffic = 950 + random.randint(-50, 50)
+    duration = 850 + random.randint(-5, 5)
+    distance = 5750 + random.randint(-1, 2) * 50
+    return buildJson(duration_in_traffic, duration, distance)
+
+
+def buildJson(duration_in_traffic, duration, distance):
+    data = {}
+    # elements["duration_in_traffic"] = str(duration_in_traffic)
+    duration_in_traffic_value = {}
+    duration_in_traffic_value = {"value": (duration_in_traffic)}
+    duration_value = {"value": (duration)}
+    distance_value = {"value": (distance)}
+    elements_content = {
+        "duration_in_traffic": duration_in_traffic_value,
+        "duration": duration_value,
+        "distance": distance_value,
+    }
+    elements = {"elements": [elements_content]}
+    data["rows"] = [elements]
+    return data

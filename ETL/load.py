@@ -1,6 +1,7 @@
 import numpy as np
 import ETL.transform, ETL.extract
 from os.path import exists
+from filelock import FileLock
 
 
 def saveTravelStats2txt(
@@ -12,35 +13,46 @@ def saveTravelStats2txt(
         TravelStats.home2work.timestampSTR[-1]
         + " ; --> Dumping response data to output file..."
     )
-    path_to_file = destination + "_h2w.csv"
-    if exists(path_to_file):
+    file = destination + "_h2w.csv"
+    lock = FileLock(file)
+    if exists(file):
         headers = ""
     else:
         headers = "Req #. ; Timestamp ; Distance [km] ; Duration (incl.traffic) [min] ; Duration (excl.traffic) [min]"
-    with open(path_to_file, "a") as f:
-        np.savetxt(
-            f,
-            h2wData,
-            fmt="%s",
-            delimiter=" ; ",
-            comments="",
-            header=headers,
-        )
+    lock.acquire()
+    try:
+        with open(file, "a") as f:
+            np.savetxt(
+                f,
+                h2wData,
+                fmt="%s",
+                delimiter=" ; ",
+                comments="",
+                header=headers,
+            )
+    finally:
+        lock.release()
 
-    path_to_file = destination + "_w2h.csv"
-    if exists(path_to_file):
+    file = destination + "_w2h.csv"
+    lock = FileLock(file)
+    if exists(file):
         headers = ""
     else:
         headers = "Req #. ; Timestamp ; Distance [km] ; Duration (incl.traffic) [min] ; Duration (excl.traffic) [min]"
-    with open(path_to_file, "a") as g:
-        np.savetxt(
-            g,
-            w2hData,
-            fmt="%s",
-            delimiter=" ; ",
-            comments="",
-            header=headers,
-        )
+    lock.acquire()
+    try:
+        with open(file, "a") as g:
+            np.savetxt(
+                g,
+                w2hData,
+                fmt="%s",
+                delimiter=" ; ",
+                comments="",
+                header=headers,
+            )
+    finally:
+        lock.release()
+
     print(TravelStats.home2work.timestampSTR[-1] + " ; ---> DONE!")
     print(
         str(TravelStats.home2work.timestampSTR[-1])
