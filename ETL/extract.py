@@ -167,10 +167,7 @@ def restartCheck(FORCED_INPUT="", sourcedata="Output") -> TravelStats:
         if s == "A" or s == "A":
             sys.exit()
         elif s == "y" or s == "Y":
-            if os.path.exists(sourcedata + "_h2w.csv"):
-                os.remove(sourcedata + "_h2w.csv")
-            if os.path.exists(sourcedata + "_w2h.csv"):
-                os.remove(sourcedata + "_w2h.csv")
+            clearOldExportFiles(sourcedata)
             results.home2work.reqID = [1]
             results.work2home.reqID = [2]
             return results
@@ -274,3 +271,10 @@ def buildJson(duration_in_traffic, duration, distance):
     elements = {"elements": [elements_content]}
     data["rows"] = [elements]
     return data
+
+
+def clearOldExportFiles(sourcedata: str):
+    if os.path.exists(sourcedata + "_h2w.csv"):
+        os.remove(sourcedata + "_h2w.csv")
+    if os.path.exists(sourcedata + "_w2h.csv"):
+        os.remove(sourcedata + "_w2h.csv")
