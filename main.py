@@ -3,7 +3,7 @@ import datetime
 import threading
 import numpy as np
 import PostProcessing.plotter
-import helpers.config
+import helpers.config as config
 import helpers.logger as logger
 import ETL.extract, ETL.transform, ETL.load, ETL.pipeline
 
@@ -13,30 +13,26 @@ RESTART_INPUT = "Y"
 
 if __name__ == "__main__":
     # Get configuration variables
-    config = helpers.config.Config(REQ_SEND)
+    Config = config.Config(REQ_SEND)
 
     # Print intro message
-    logger.printIntroMessage(config)
+    logger.printIntroMessage(Config)
 
     # Checking for restart
     logger.log("Checking for restart...")
     TravelStats = ETL.extract.restartCheck(RESTART_INPUT)
 
     # Checking for start time
-    while helpers.config.isItTimeToStart(config.START_TIME):
-        logger.printWaitTimeMessage(config.START_TIME)
-        time.sleep(5)
+    config.waitForStartTime(Config)
 
     # Start ETL Pipeline
-    # ETL.pipeline.ETLPipeline(TravelStats, config)
-    t1 = threading.Thread(target=ETL.pipeline.ETLPipeline, args=(TravelStats, config))
+    t1 = threading.Thread(target=ETL.pipeline.ETLPipeline, args=(TravelStats, Config))
     t1.start()
 
     # Start PostProcessing service
-    if config.POST_PROCESSING:
+    if Config.POST_PROCESSING:
         time.sleep(1)
         t2 = threading.Thread(
             target=PostProcessing.plotter.postProcess,
-            args=("Output.jpg", config.POST_PROCESSING_SAMPLING_TIME),
-        )
-        t2.start()
+            args=("Output.jpg", Config.POST_PROCESSING_SAMPLING_TIME),
+        ).start()
