@@ -117,3 +117,10 @@ def waitForNextCycle(reqTimestamp, config):
     logger.log("- Waiting " + str(wait_time) + " second(s) for next request cycle-")
     logger.log("----------------------------------------------")
     time.sleep(wait_time)
+
+
+def waitForStartTime(config: Config):
+    while isItTimeToStart(config.START_TIME):
+        logger.printWaitTimeMessage(config.START_TIME)
+        time.sleep(5)
+    return
