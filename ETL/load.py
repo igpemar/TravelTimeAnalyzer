@@ -1,4 +1,6 @@
 import os
+import time
+import threading
 import numpy as np
 import ETL.transform, ETL.extract
 import helpers.logger as logger
@@ -11,17 +13,20 @@ def saveTravelStats2txt(
 ):
     h2wData = ETL.transform.travelTimeColumnStack(TravelStats.home2work)
     w2hData = ETL.transform.travelTimeColumnStack(TravelStats.work2home)
-    logger.log(
-        TravelStats.home2work.timestampSTR[-1]
-        + " ; --> Dumping response data to output file..."
-    )
+    logger.log("--> Dumping response data to output file...")
 
-    file = destination + "_h2w.csv"
-    writeDataToCsv(file, h2wData)
-    file = destination + "_w2h.csv"
-    writeDataToCsv(file, w2hData)
+    start_time = time.time()
+    file_h2w = destination + "_h2w.csv"
+    file_w2h = destination + "_w2h.csv"
+    t1 = threading.Thread(target=writeDataToCsv, args=(file_h2w, h2wData))
+    t2 = threading.Thread(target=writeDataToCsv, args=(file_w2h, w2hData))
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+    elapsed = time.time() - start_time
 
-    logger.log(TravelStats.home2work.timestampSTR[-1] + " ; ---> Done Writing!")
+    logger.log(f"---> Done Writing! {round(elapsed*1000,2)} ms")
     logger.log(
         str(TravelStats.home2work.timestampSTR[-1])
         + " ; ----------------------------------------------"
