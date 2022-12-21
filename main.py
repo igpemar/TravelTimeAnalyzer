@@ -3,7 +3,8 @@ import datetime
 import threading
 import numpy as np
 import PostProcessing.plotter
-import helpers.config, helpers.logger
+import helpers.config
+import helpers.logger as logger
 import ETL.extract, ETL.transform, ETL.load, ETL.pipeline
 
 
@@ -15,15 +16,15 @@ if __name__ == "__main__":
     config = helpers.config.Config(REQ_SEND)
 
     # Print intro message
-    helpers.logger.printIntroMessage(config)
+    logger.printIntroMessage(config)
 
     # Checking for restart
-    print("Checking for restart...")
+    logger.log("Checking for restart...")
     TravelStats = ETL.extract.restartCheck(RESTART_INPUT)
 
     # Checking for start time
     while helpers.config.isItTimeToStart(config.START_TIME):
-        helpers.logger.printWaitTimeMessage(config.START_TIME)
+        logger.printWaitTimeMessage(config.START_TIME)
         time.sleep(5)
 
     # Start ETL Pipeline

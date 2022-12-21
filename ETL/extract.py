@@ -7,6 +7,7 @@ import random
 import requests
 import datetime
 from filelock import FileLock
+import helpers.logger as logger
 
 
 class TravelStats:
@@ -87,7 +88,7 @@ class TravelTime:
         try:
             data = pandas.read_csv(filename, sep=";")
         except:
-            print(
+            logger.log(
                 f"Error reading from {filename}, impossible to restart from existing data"
             )
             return
@@ -202,13 +203,13 @@ def sendRequest(config, request, reqID):
         except requests.ConnectionError:
             if config.RETRY_COUNTER < config.RETRY_MAX_TRIES:
                 config.incRetryCounter()
-                print(
+                logger.log(
                     f"Request failed, retrying in {config.RETRY_INTERVAL} seconds; attempt {config.RETRY_COUNTER}/{config.RETRY_MAX_TRIES}"
                 )
                 time.sleep(config.RETRY_INTERVAL)
                 continue
             else:
-                print(f"Max number of tries reached for Request {reqID}, exiting")
+                logger.log(f"Max number of tries reached for Request {reqID}, exiting")
                 sys.exit()
 
     config.resetRetryCounter()
@@ -216,11 +217,11 @@ def sendRequest(config, request, reqID):
     while not ok:
         if config.RETRY_COUNTER < config.RETRY_MAX_TRIES:
             config.incRetryCounter()
-            print(f"Response nopt OK, retrying in {config.RETRY_INTERVAL} seconds")
+            logger.log(f"Response nopt OK, retrying in {config.RETRY_INTERVAL} seconds")
             time.sleep(config.RETRY_INTERVAL)
             continue
         else:
-            f"Max number of tries reached for Request {reqID}, exiting"
+            logger.log(f"Max number of tries reached for Request {reqID}, exiting")
             sys.exit()
 
     return resp
@@ -229,12 +230,10 @@ def sendRequest(config, request, reqID):
 def handleResponse(response) -> bool:
     if response.ok:
         elapsed = round(response.elapsed.microseconds / 1000, 1)
-        print(f"{datetime.datetime.now()} ;  Request succeded, {elapsed} ms")
+        logger.log("Request succeded, {elapsed} ms")
         return True
     else:
-        print(
-            f"{datetime.datetime.now()} ;  ERROR: An error occurred while performing the API requests"
-        )
+        logger.log("ERROR: An error occurred while performing the API requests")
         return False
 
 

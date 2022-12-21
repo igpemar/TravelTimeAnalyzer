@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import ETL.transform, ETL.extract
+import helpers.logger as logger
 from os.path import exists
 from filelock import FileLock
 
@@ -10,7 +11,7 @@ def saveTravelStats2txt(
 ):
     h2wData = ETL.transform.travelTimeColumnStack(TravelStats.home2work)
     w2hData = ETL.transform.travelTimeColumnStack(TravelStats.work2home)
-    print(
+    logger.log(
         TravelStats.home2work.timestampSTR[-1]
         + " ; --> Dumping response data to output file..."
     )
@@ -20,8 +21,8 @@ def saveTravelStats2txt(
     file = destination + "_w2h.csv"
     writeDataToCsv(file, w2hData)
 
-    print(TravelStats.home2work.timestampSTR[-1] + " ; ---> Done Writing!")
-    print(
+    logger.log(TravelStats.home2work.timestampSTR[-1] + " ; ---> Done Writing!")
+    logger.log(
         str(TravelStats.home2work.timestampSTR[-1])
         + " ; ----------------------------------------------"
     )

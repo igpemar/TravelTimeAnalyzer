@@ -1,4 +1,4 @@
-import helpers
+import helpers.config
 import datetime
 
 
@@ -48,7 +48,7 @@ def printIntroMessage(config: helpers.config.Config):
 
 
 def printWaitTimeMessage(start_time: str) -> None:
-    print(
+    log(
         "Current time: "
         + str(datetime.datetime.now())
         + "  ; Waiting for Startime ... "
@@ -57,8 +57,12 @@ def printWaitTimeMessage(start_time: str) -> None:
 
 
 def printRequestSent(reqID):
-    print(str(datetime.datetime.now())[0:19] + f" ; Sending request #{reqID}")
+    log(f"Sending request #{reqID}")
 
 
 def printRequestReceivedSuccesfully(reqID):
-    print(str(datetime.datetime.now())[0:19] + f" ; Request #{reqID} succeeded.")
+    log(f"Request #{reqID} succeeded")
+
+
+def log(logString: str):
+    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " ; " + logString)

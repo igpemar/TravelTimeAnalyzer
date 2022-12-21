@@ -1,6 +1,7 @@
 import ETL.extract, ETL.transform, ETL.load
 import datetime
-import helpers.config, helpers.logger
+import helpers.config
+import helpers.logger as logger
 import psutil
 import os
 
@@ -56,21 +57,17 @@ def ETLPipeline(
         TravelStats.incrementRequestIDs(2)
         monitor_total_ram_usage_current_process()
         helpers.config.waitForNextCycle(reqTimestamp, config)
-    return
 
 
 def monitor_total_ram_usage():
     ram_usage = psutil.virtual_memory()
-    print(
-        str(datetime.datetime.now())[0:19]
-        + f" RAM Usage: {ram_usage.used/1024/1024} MB"
-    )
+    logger.log(f" RAM Usage: {ram_usage.used/1024/1024} MB")
     return
 
 
 def monitor_total_ram_usage_current_process():
     process = psutil.Process(os.getpid())
-    print(
+    logger.log(
         str(datetime.datetime.now())[0:19]
         + f" ; RAM Usage: {process.memory_info().rss/1024/1024} MB"
     )  # in bytes

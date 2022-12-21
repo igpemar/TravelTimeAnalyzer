@@ -1,6 +1,7 @@
 import time
 import datetime
 import configparser
+import helpers.logger as logger
 
 
 # Where to
@@ -90,11 +91,6 @@ def waitForNextCycle(reqTimestamp, config):
     wait_time = findwaittime(
         reqTimestamp, config.HIGH_SAMPLING_FREQUENCY, config.LOW_SAMPLING_FREQUENCY
     )
-    print(
-        str(reqTimestamp)[0:-7]
-        + " ; - Waiting "
-        + str(wait_time)
-        + " second(s) for next request cycle-"
-    )
-    print(str(reqTimestamp)[0:-7] + " ; ----------------------------------------------")
+    logger.log("- Waiting " + str(wait_time) + " second(s) for next request cycle-")
+    logger.log("----------------------------------------------")
     time.sleep(wait_time)
