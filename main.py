@@ -26,8 +26,6 @@ if __name__ == "__main__":
         helpers.logger.printWaitTimeMessage(config.START_TIME)
         time.sleep(5)
 
-    print("Starting now at: ", datetime.datetime.now())
-
     # Start ETL Pipeline
     # ETL.pipeline.ETLPipeline(TravelStats, config)
     t1 = threading.Thread(target=ETL.pipeline.ETLPipeline, args=(TravelStats, config))
