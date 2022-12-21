@@ -52,6 +52,10 @@ class Config:
         secret = configparser.ConfigParser()
         secret.read("secrets/google.txt")
         self.API_KEY = secret.get("secrets", "API_KEY")
+        if self.API_KEY == "":
+            logger.log("Empty API_KEY, defaulting to mock request mode.")
+            logger.log("Press any key to continue...")
+            input("")
 
     def getApiKey(
         self,
