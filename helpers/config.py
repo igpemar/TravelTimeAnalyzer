@@ -1,3 +1,4 @@
+import os
 import time
 import datetime
 import configparser
@@ -49,13 +50,31 @@ class Config:
     def initiateAPIkey(
         self,
     ):
+        self.API_KEY = ""
         secret = configparser.ConfigParser()
-        secret.read("secrets/google.txt")
-        self.API_KEY = secret.get("secrets", "API_KEY")
-        if self.API_KEY == "":
-            logger.log("Empty API_KEY, defaulting to mock request mode.")
+        if os.path.exists("secrets/google.txt"):
+            secret.read("secrets/google.txt")
+            try:
+                self.API_KEY = secret.get("secrets", "API_KEY")
+            except configparser.NoOptionError:
+                self.REQ_SEND = 0
+                logger.log(
+                    "API_KEY not found in secrets/google.txt, defaulting to mock request mode."
+                )
+                logger.log("Press any key to continue...")
+                input("")
+            else:
+                if self.API_KEY == "":
+                    self.REQ_SEND = 0
+                    logger.log("Empty API_KEY, defaulting to mock request mode.")
+                    logger.log("Press any key to continue...")
+                    input("")
+        else:
+            self.REQ_SEND = 0
+            logger.log("secrets/google.txt not found, defaulting to mock request mode.")
             logger.log("Press any key to continue...")
             input("")
+            return
 
     def getApiKey(
         self,
