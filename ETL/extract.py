@@ -163,37 +163,33 @@ def restartCheck(FORCED_INPUT="", sourcedata="Output") -> TravelStats:
             s = input(
                 " Would you like to start from scratch and erase the existing data? Y/N/A "
             )
-        results = TravelStats()
+        res = TravelStats()
         if s == "A" or s == "A":
             sys.exit()
         elif s == "y" or s == "Y":
             clearOldExportFiles(sourcedata)
-            results.home2work.reqID = [1]
-            results.work2home.reqID = [2]
-            return results
+            res.home2work.reqID = [1]
+            res.work2home.reqID = [2]
+            return res
         elif s == "n" or s == "N":
-            results.loadH2WFromCSV(sourcedata + "_h2w.csv")
-            results.loadW2FFromCSV(sourcedata + "_w2h.csv")
-            results.home2work.reqID = list(
-                range(1, len(results.home2work.distanceAVG) * 2 + 2, 2)
+            res.loadH2WFromCSV(sourcedata + "_h2w.csv")
+            res.loadW2FFromCSV(sourcedata + "_w2h.csv")
+            res.home2work.reqID = list(
+                range(1, len(res.home2work.distanceAVG) * 2 + 2, 2)
             )
-            results.work2home.reqID = list(
-                range(2, len(results.home2work.distanceAVG) * 2 + 3, 2)
+            res.work2home.reqID = list(
+                range(2, len(res.home2work.distanceAVG) * 2 + 3, 2)
             )
-            return results
+            return res
 
 
 def fetchData(sourcedata="Output") -> TravelStats:
-    results = TravelStats()
-    results.loadH2WFromCSV(sourcedata + "_h2w.csv")
-    results.loadW2FFromCSV(sourcedata + "_w2h.csv")
-    results.home2work.reqID = list(
-        range(1, len(results.home2work.distanceAVG) * 2 + 2, 2)
-    )
-    results.work2home.reqID = list(
-        range(2, len(results.home2work.distanceAVG) * 2 + 3, 2)
-    )
-    return results
+    res = TravelStats()
+    res.loadH2WFromCSV(sourcedata + "_h2w.csv")
+    res.loadW2FFromCSV(sourcedata + "_w2h.csv")
+    res.home2work.reqID = list(range(1, len(res.home2work.distanceAVG) * 2 + 2, 2))
+    res.work2home.reqID = list(range(2, len(res.home2work.distanceAVG) * 2 + 3, 2))
+    return res
 
 
 def sendRequest(config, request, reqID):
