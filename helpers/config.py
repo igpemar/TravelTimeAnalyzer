@@ -6,10 +6,6 @@ import helpers.logger as logger
 from datetime import datetime as datetime
 from datetime import timedelta as timedelta
 
-# Where to
-# HOME = (55.688519, 12.528168)  # GPS Coordinates in decimal degrees DDD.DDDDD
-# WORK = (55.672162, 12.585666)  # GPS Coordinates in decimal degrees DDD.DDDDD
-
 
 class Config:
     def __init__(self, REQ_SEND: bool):
