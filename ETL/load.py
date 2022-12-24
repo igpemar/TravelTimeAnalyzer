@@ -32,7 +32,7 @@ def saveTravelStats2txt(TravelStats: extract.TravelStats, dest: str = "Output") 
     )
 
 
-def writeDataToCsv(fileName: str, h2wData) -> None:
+def writeDataToCsv(fileName: str, h2wData: np.ndarray) -> None:
     if exists(fileName):
         headers = ""
     else:

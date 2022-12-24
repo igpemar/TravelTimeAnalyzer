@@ -1,12 +1,14 @@
+import requests
 import numpy as np
 import ETL.extract as extract
+from datetime import datetime
 
 
 def storeRespDataNP(
-    TravelTime,
-    reqTimestamp,
-    response,
-):
+    TravelTime: extract.TravelTime,
+    reqTimestamp: datetime,
+    response: requests.Response,
+) -> None:
     root = response["rows"][0]["elements"][0]
     TravelTime.setTimeStamps(reqTimestamp)
     TravelTime.distanceAVG.append(round(root["distance"]["value"] / 1000.0, 2))
