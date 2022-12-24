@@ -65,6 +65,11 @@ class Config:
             input("")
             return
 
+    def getApiKey(
+        self,
+    ):
+        return self.API_KEY
+
     def parseInputParam(self, param: str):
         parser = configparser.ConfigParser()
         if os.path.exists("input.txt"):
@@ -127,11 +132,6 @@ class Config:
                 logger.log(f"wrong input {paramName}, must be a boolean, exiting.")
 
         sys.exit()
-
-    def getApiKey(
-        self,
-    ):
-        return self.API_KEY
 
     def incRetryCounter(
         self,
