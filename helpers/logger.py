@@ -1,7 +1,7 @@
-import datetime
+from datetime import datetime as datetime
 
 
-def logIntroMessage(home: tuple, work: tuple):
+def logIntroMessage(home: tuple, work: tuple) -> None:
     homeCardinalLat = " N ; "
     workCardinalLat = " N ; "
     if home[0] < 0:
@@ -37,19 +37,19 @@ def logIntroMessage(home: tuple, work: tuple):
 def logWaitTimeMessage(start_time: str) -> None:
     log(
         "Current time: "
-        + str(datetime.datetime.now())
+        + str(datetime.now())
         + "  ; Waiting for Startime ... "
         + str(start_time)
     )
 
 
-def logRequestSent(reqID: int):
+def logRequestSent(reqID: int) -> None:
     log(f"Sending request #{reqID}")
 
 
-def logRequestReceivedSuccesfully(reqID: int):
+def logRequestReceivedSuccesfully(reqID: int) -> None:
     log(f"Request #{reqID} succeeded")
 
 
-def log(logString: str):
-    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " ; " + logString)
+def log(logString: str) -> None:
+    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " ; " + logString)

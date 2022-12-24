@@ -9,14 +9,14 @@ from os.path import exists
 from filelock import FileLock
 
 
-def saveTravelStats2txt(TravelStats: extract.TravelStats, destination: str = "Output"):
+def saveTravelStats2txt(TravelStats: extract.TravelStats, dest: str = "Output") -> None:
     h2wData = transform.travelTimeColumnStack(TravelStats.home2work)
     w2hData = transform.travelTimeColumnStack(TravelStats.work2home)
     logger.log("--> Dumping response data to output file...")
 
     start_time = time.time()
-    file_h2w = destination + "_h2w.csv"
-    file_w2h = destination + "_w2h.csv"
+    file_h2w = dest + "_h2w.csv"
+    file_w2h = dest + "_w2h.csv"
     t1 = threading.Thread(target=writeDataToCsv, args=(file_h2w, h2wData))
     t2 = threading.Thread(target=writeDataToCsv, args=(file_w2h, w2hData))
     t1.start()
@@ -32,7 +32,7 @@ def saveTravelStats2txt(TravelStats: extract.TravelStats, destination: str = "Ou
     )
 
 
-def writeDataToCsv(fileName: str, h2wData):
+def writeDataToCsv(fileName: str, h2wData) -> None:
     if exists(fileName):
         headers = ""
     else:

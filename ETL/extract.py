@@ -4,10 +4,9 @@ import time
 import pandas
 import random
 import requests
-import datetime
-from filelock import FileLock
 import helpers.config as config
 import helpers.logger as logger
+from datetime import datetime as datetime
 
 
 class TravelStats:
@@ -53,7 +52,7 @@ class TravelStats:
             self.home2work.incrementReqID(-inc)
             self.work2home.incrementReqID(-inc)
 
-    def setTimestamp(self, timestamp: datetime.datetime):
+    def setTimestamp(self, timestamp: datetime):
         self.home2work.setTimeStamps(timestamp)
         self.work2home.setTimeStamps(timestamp)
 
@@ -97,16 +96,14 @@ class TravelTime:
             self.reqID.append(data.values[i][0])
             self.timestampSTR.append(data.values[i][1].strip())
             self.timestampDT.append(
-                datetime.datetime.strptime(
-                    data.values[i][1].strip(), "%Y-%m-%d %H:%M:%S"
-                )
+                datetime.strptime(data.values[i][1].strip(), "%Y-%m-%d %H:%M:%S")
             )
             self.distanceAVG.append(data.values[i][2])
             self.durationInclTraffic.append(data.values[i][3])
             self.durationEnclTraffic.append(data.values[i][4])
             self.isFirstWriteCycle = False
 
-    def setTimeStamps(self, timestamp: datetime.datetime):
+    def setTimeStamps(self, timestamp: datetime):
         self.timestampDT.append(timestamp)
         self.timestampSTR.append(timestamp.strftime("%Y-%m-%d %H:%M:%S"))
 
@@ -193,7 +190,9 @@ def fetchData(sourcedata: str = "Output") -> TravelStats:
     return res
 
 
-def sendRequest(config: config.Config, request: requests.request, reqID: int):
+def sendRequest(
+    config: config.Config, request: requests.request, reqID: int
+) -> requests.Response:
     payload, headers = {}, {}
     config.resetRetryCounter()
     while True:
@@ -251,7 +250,7 @@ def mockw2hResponseAsJson() -> str:
     return buildJson(duration_in_traffic, duration, distance)
 
 
-def buildJson(duration_in_traffic: int, duration: int, distance: int):
+def buildJson(duration_in_traffic: int, duration: int, distance: int) -> dict:
     data = {}
     # elements["duration_in_traffic"] = str(duration_in_traffic)
     duration_in_traffic_value = {}
@@ -268,7 +267,7 @@ def buildJson(duration_in_traffic: int, duration: int, distance: int):
     return data
 
 
-def clearOldExportFiles(sourcedata: str):
+def clearOldExportFiles(sourcedata: str) -> None:
     if os.path.exists(sourcedata + "_h2w.csv"):
         os.remove(sourcedata + "_h2w.csv")
     if os.path.exists(sourcedata + "_w2h.csv"):

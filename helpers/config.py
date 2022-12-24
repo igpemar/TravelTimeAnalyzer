@@ -2,9 +2,10 @@ import os
 import re
 import sys
 import time
-import datetime
 import configparser
 import helpers.logger as logger
+from datetime import datetime as datetime
+from datetime import timedelta as timedelta
 
 # Where to
 # HOME = (55.688519, 12.528168)  # GPS Coordinates in decimal degrees DDD.DDDDD
@@ -65,7 +66,7 @@ class Config:
             input("")
             return
 
-    def parseInputParam(self, param):
+    def parseInputParam(self, param: str):
         parser = configparser.ConfigParser()
         if os.path.exists("input.txt"):
             parser.read("input.txt")
@@ -85,7 +86,7 @@ class Config:
             logger.log("input.txt not found, unable to parse input data, exiting.")
         sys.exit()
 
-    def validateParam(self, paramName, paramValue):
+    def validateParam(self, paramName: str, paramValue: str):
         if paramName in ("WORK", "HOME"):
             pattern = re.compile("^\((-?\d{0,2}.\d*),\s?(-?\d{0,2}.\d*)\)$")
             a = re.findall(pattern, paramValue)
@@ -112,7 +113,7 @@ class Config:
                 )
         elif paramName == "START_TIME":
             try:
-                return datetime.datetime.strptime(paramValue, "%Y-%m-%d %H:%M:%S")
+                return datetime.strptime(paramValue, "%Y-%m-%d %H:%M:%S")
             except:
                 logger.log(
                     f"wrong input {paramName}, must be in a valid YYYY-MM-DD HH:MM:SS format, exiting."
@@ -144,17 +145,17 @@ class Config:
         self.RETRY_COUNTER = 1
 
 
-def isItTimeToStart(start_time) -> bool:
-    return start_time - datetime.datetime.now() > datetime.timedelta(seconds=1)
+def isItTimeToStart(start_time: datetime) -> bool:
+    return start_time - datetime.now() > timedelta(seconds=1)
 
 
-def isItTimeToDumpData(timeSinceLastDataDump, config) -> bool:
-    return timeSinceLastDataDump >= datetime.timedelta(
+def isItTimeToDumpData(timeSinceLastDataDump: datetime, config) -> bool:
+    return timeSinceLastDataDump >= timedelta(
         seconds=config.DATA_DUMP_FREQUENCY, microseconds=10
     )
 
 
-def findwaittime(time, hdsf, ldsf):
+def findwaittime(time: datetime, hdsf: int, ldsf: int) -> int:
     if time.weekday():
         h = time.hour
         if 5 <= h < 11 or 13 <= h < 19:
@@ -162,7 +163,7 @@ def findwaittime(time, hdsf, ldsf):
     return ldsf
 
 
-def waitForNextCycle(reqTimestamp, config):
+def waitForNextCycle(reqTimestamp, config: Config) -> None:
     wait_time = findwaittime(
         reqTimestamp, config.HIGH_SAMPLING_FREQUENCY, config.LOW_SAMPLING_FREQUENCY
     )
@@ -171,8 +172,7 @@ def waitForNextCycle(reqTimestamp, config):
     time.sleep(wait_time)
 
 
-def waitForStartTime(config: Config):
+def waitForStartTime(config: Config) -> None:
     while isItTimeToStart(config.START_TIME):
         logger.logWaitTimeMessage(config.START_TIME)
         time.sleep(5)
-    return

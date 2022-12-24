@@ -1,15 +1,16 @@
+import time
+import math
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import time
-import math
-import datetime
 import ETL.extract as extract
+from datetime import datetime as datetime
+from datetime import timedelta as timedelta
 
-axis_mode = "Running"  # Choose between "Running", "FullWeek" and "FullDay"
+axis_mode = "FullDay"  # Choose between "Running", "FullWeek" and "FullDay"
 
 
-def postProcess(SAVE_LOCATION="Plot.jgp", sampling=0):
+def postProcess(SAVE_LOCATION: str = "Plot.jgp", sampling: int = 0) -> None:
     if not checkAxisMode(axis_mode):
         raise Exception("wrong axis_mode")
     while True:
@@ -74,21 +75,21 @@ def postProcess(SAVE_LOCATION="Plot.jgp", sampling=0):
 
 
 def initializeAxes(
-    ax: matplotlib.axes,
+    ax: plt.axes,
     XLABEL="X label",
     YLABEL="Y label",
     XLAB_FS=15,
     YLAB_FS=15,
-):
+) -> None:
     ax.set_xlabel(XLABEL, fontsize=XLAB_FS)
     ax.set_ylabel(YLABEL, fontsize=YLAB_FS)
 
 
-def setYLim(ax, Y1, Y2):
+def setYLim(ax: plt.axes, Y1: list[float], Y2: list[float]) -> None:
     ax.set_ylim((0, math.ceil(1.1 * max(max(Y1), max(Y2)))))
 
 
-def buildOutputsSourcePaths(SourcePath: str, Filename: str):
+def buildOutputsSourcePaths(SourcePath: str, Filename: str) -> tuple[str, str]:
     if SourcePath:
         if SourcePath[-1] != "/":
             SourcePath += "/"
@@ -99,41 +100,47 @@ def buildOutputsSourcePaths(SourcePath: str, Filename: str):
     )
 
 
-def createFigure():
+def createFigure() -> tuple[plt.axes, plt.axes]:
     plt.close("all")
     _, (ax1, ax2) = plt.subplots(1, 2, num=1, figsize=(20, 10))
     # plt.figure(1, figsize=(15, 5))
     return (ax1, ax2)
 
 
-def parseDurationInclTraffic2XYPlot(TravelStats: extract.TravelStats):
+def parseDurationInclTraffic2XYPlot(
+    TravelStats: extract.TravelStats,
+) -> tuple[list[float], list[float], list[float]]:
     timestamp = TravelStats.home2work.timestampDT
     t0 = timestamp[0]
     elapsedTimeSeconds = [(x - t0).total_seconds() for x in timestamp]
-    durationInclTraffic_h2w = TravelStats.home2work.durationInclTraffic
-    durationInclTraffic_w2h = TravelStats.work2home.durationInclTraffic
-    return elapsedTimeSeconds, durationInclTraffic_h2w, durationInclTraffic_w2h
+    Y1 = TravelStats.home2work.durationInclTraffic
+    Y2 = TravelStats.work2home.durationInclTraffic
+    return elapsedTimeSeconds, Y1, Y2
 
 
-def parseDurationExclTraffic2XYPlot(TravelStats: extract.TravelStats):
+def parseDurationExclTraffic2XYPlot(
+    TravelStats: extract.TravelStats,
+) -> tuple[list[float], list[float], list[float]]:
     timestamp = TravelStats.home2work.timestampDT
     t0 = timestamp[0]
     elapsedTimeSeconds = [(x - t0).total_seconds() for x in timestamp]
-    durationExclTraffich2w = TravelStats.home2work.durationEnclTraffic
-    durationExclTrafficw2h = TravelStats.work2home.durationEnclTraffic
-    return elapsedTimeSeconds, durationExclTraffich2w, durationExclTrafficw2h
+    Y1 = TravelStats.home2work.durationEnclTraffic
+    Y2 = TravelStats.work2home.durationEnclTraffic
+    return elapsedTimeSeconds, Y1, Y2
 
 
-def parseDistance2XYPlot(TravelStats: extract.TravelStats):
+def parseDistance2XYPlot(
+    TravelStats: extract.TravelStats,
+) -> tuple[list[float], list[float], list[float]]:
     timestamp = TravelStats.home2work.timestampDT
     t0 = timestamp[0]
     elapsedTimeSeconds = [(x - t0).total_seconds() for x in timestamp]
-    distanceh2w = TravelStats.home2work.distanceAVG
-    distancew2h = TravelStats.work2home.distanceAVG
-    return elapsedTimeSeconds, distanceh2w, distancew2h
+    Y1 = TravelStats.home2work.distanceAVG
+    Y2 = TravelStats.work2home.distanceAVG
+    return elapsedTimeSeconds, Y1, Y2
 
 
-def getXTicks(axis_mode: str):
+def getXTicks(axis_mode: str) -> np.ndarray:
     if axis_mode == "FullWeek":
         return np.linspace(0, 60 * 60 * 24 * 7, len(range(0, 7 * 24 + 8, 8)))
     elif axis_mode == "FullDay":
@@ -142,29 +149,19 @@ def getXTicks(axis_mode: str):
         return []
 
 
-def getXLabels(t0, axis_mode: str):
+def getXLabels(t0, axis_mode: str) -> list[str]:
     if axis_mode == "FullWeek":
         return [
-            str(
-                (
-                    t0
-                    + datetime.timedelta(
-                        hours=int(i), minutes=-t0.minute, seconds=-t0.second
-                    )
-                )
-            )[:-3]
+            str((t0 + timedelta(hours=int(i), minutes=-t0.minute, seconds=-t0.second)))[
+                :-3
+            ]
             for i in range(0, 7 * 24 + 8, 8)
         ]
     elif axis_mode == "FullDay":
         return [
-            str(
-                (
-                    t0
-                    + datetime.timedelta(
-                        hours=int(i), minutes=-t0.minute, seconds=-t0.second
-                    )
-                )
-            )[:-3]
+            str((t0 + timedelta(hours=int(i), minutes=-t0.minute, seconds=-t0.second)))[
+                :-3
+            ]
             for i in range(0, 1 * 24 + 1, 1)
         ]
     else:
@@ -182,5 +179,5 @@ def checkAxisMode(axis_mode: str) -> bool:
         return False
 
 
-def checkForDataCompletion(X, Y1, Y2):
+def checkForDataCompletion(X: list, Y1: list, Y2: list) -> bool:
     return len(X) == len(Y1) and len(X) == len(Y2)

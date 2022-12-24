@@ -1,4 +1,5 @@
 import numpy as np
+import ETL.extract as extract
 
 
 def storeRespDataNP(
@@ -19,7 +20,7 @@ def storeRespDataNP(
     TravelTime.isFirstWriteCycle = False
 
 
-def travelTimeColumnStack(TravelTime):
+def travelTimeColumnStack(TravelTime: extract.TravelTime) -> np.ndarray:
     return np.column_stack(
         (
             TravelTime.reqID,
