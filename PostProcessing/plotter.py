@@ -76,10 +76,10 @@ def postProcess(SAVE_LOCATION: str = "Plot.jgp", sampling: int = 0) -> None:
 
 def initializeAxes(
     ax: plt.axes,
-    XLABEL="X label",
-    YLABEL="Y label",
-    XLAB_FS=15,
-    YLAB_FS=15,
+    XLABEL: str = "X label",
+    YLABEL: str = "Y label",
+    XLAB_FS: int = 15,
+    YLAB_FS: int = 15,
 ) -> None:
     ax.set_xlabel(XLABEL, fontsize=XLAB_FS)
     ax.set_ylabel(YLABEL, fontsize=YLAB_FS)
@@ -149,7 +149,7 @@ def getXTicks(axis_mode: str) -> np.ndarray:
         return []
 
 
-def getXLabels(t0, axis_mode: str) -> list[str]:
+def getXLabels(t0: datetime, axis_mode: str) -> list[str]:
     if axis_mode == "FullWeek":
         return [
             str((t0 + timedelta(hours=int(i), minutes=-t0.minute, seconds=-t0.second)))[

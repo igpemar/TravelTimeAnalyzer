@@ -149,7 +149,7 @@ def isItTimeToStart(start_time: datetime) -> bool:
     return start_time - datetime.now() > timedelta(seconds=1)
 
 
-def isItTimeToDumpData(timeSinceLastDataDump: datetime, config) -> bool:
+def isItTimeToDumpData(timeSinceLastDataDump: datetime, config: Config) -> bool:
     return timeSinceLastDataDump >= timedelta(
         seconds=config.DATA_DUMP_FREQUENCY, microseconds=10
     )
@@ -163,7 +163,7 @@ def findwaittime(time: datetime, hdsf: int, ldsf: int) -> int:
     return ldsf
 
 
-def waitForNextCycle(reqTimestamp, config: Config) -> None:
+def waitForNextCycle(reqTimestamp: datetime, config: Config) -> None:
     wait_time = findwaittime(
         reqTimestamp, config.HIGH_SAMPLING_FREQUENCY, config.LOW_SAMPLING_FREQUENCY
     )
