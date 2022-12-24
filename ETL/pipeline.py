@@ -1,16 +1,14 @@
 import os
 import psutil
 import datetime
-import helpers.config.config
+import helpers.config
 import ETL.extract as extract
 import ETL.transform as transform
 import ETL.load as load
 import helpers.logger as logger
 
 
-def ETLPipeline(
-    TravelStats: extract.TravelStats, config: helpers.config.config.Config
-) -> None:
+def ETLPipeline(TravelStats: extract.TravelStats, config) -> None:
     lastDataDump = datetime.datetime.now()
     # Building request
     reqs = extract.GoogleMapsRequests()

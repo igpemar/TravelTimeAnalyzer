@@ -1,20 +1,19 @@
 import datetime
-import helpers.config
 
 
-def printIntroMessage(config: helpers.config.Config):
+def logIntroMessage(home: tuple, work: tuple):
     homeCardinalLat = " N ; "
     workCardinalLat = " N ; "
-    if config.HOME[0] < 0:
+    if home[0] < 0:
         homeCardinalLat = " S ; "
-    if config.WORK[0] < 0:
+    if work[0] < 0:
         workCardinalLat = " S ; "
 
     homeCardinalLon = " E "
     workCardinalLon = " E "
-    if config.HOME[0] < 0:
+    if home[0] < 0:
         homeCardinalLon = " W "
-    if config.WORK[0] < 0:
+    if work[0] < 0:
         workCardinalLon = " W "
 
     print("")
@@ -27,27 +26,15 @@ def printIntroMessage(config: helpers.config.Config):
     )
     print("Fetching driving time")
     print(" from:")
-    print(
-        "   "
-        + str(config.HOME[0])
-        + homeCardinalLat
-        + str(config.HOME[1])
-        + homeCardinalLon
-    )
+    print("   " + str(home[0]) + homeCardinalLat + str(home[1]) + homeCardinalLon)
     print(" to:")
-    print(
-        "   "
-        + str(config.WORK[0])
-        + workCardinalLat
-        + str(config.WORK[1])
-        + workCardinalLon
-    )
+    print("   " + str(work[0]) + workCardinalLat + str(work[1]) + workCardinalLon)
     print(
         "------------------------------------------------------------------------------"
     )
 
 
-def printWaitTimeMessage(start_time: str) -> None:
+def logWaitTimeMessage(start_time: str) -> None:
     log(
         "Current time: "
         + str(datetime.datetime.now())
@@ -56,11 +43,11 @@ def printWaitTimeMessage(start_time: str) -> None:
     )
 
 
-def printRequestSent(reqID):
+def logRequestSent(reqID: int):
     log(f"Sending request #{reqID}")
 
 
-def printRequestReceivedSuccesfully(reqID):
+def logRequestReceivedSuccesfully(reqID: int):
     log(f"Request #{reqID} succeeded")
 
 

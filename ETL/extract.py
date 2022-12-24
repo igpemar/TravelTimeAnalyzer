@@ -6,7 +6,7 @@ import random
 import requests
 import datetime
 from filelock import FileLock
-import config.config as config
+import helpers.config as config
 import helpers.logger as logger
 
 

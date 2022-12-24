@@ -15,7 +15,7 @@ if __name__ == "__main__":
     Config = config.Config(REQ_SEND)
 
     # Print intro message
-    logger.printIntroMessage(Config)
+    logger.logIntroMessage(Config.HOME, Config.WORK)
 
     # Checking for restart
     logger.log("Checking for restart...")

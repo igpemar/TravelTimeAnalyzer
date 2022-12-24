@@ -6,9 +6,23 @@ import datetime
 import configparser
 import helpers.logger as logger
 
+
 # Where to
 # HOME = (55.688519, 12.528168)  # GPS Coordinates in decimal degrees DDD.DDDDD
 # WORK = (55.672162, 12.585666)  # GPS Coordinates in decimal degrees DDD.DDDDD
+
+
+# Request frequency
+# HIGH_SAMPLING_TIME = 0.025  # In seconds (integer)
+# LOW_SAMPLING_TIME = 0.025  # In seconds (integer)
+# START_TIME = datetime.datetime(2022, 12, 12, 18, 9, 0)
+# POST_PROCESSING_SAMPLING_TIME = 2 * 2
+
+# Data storage
+# DATA_DUMP_FREQUENCY = HIGH_SAMPLING_TIME * 10  # In seconds (integer)
+
+# Post Processing
+# POST_PROCESSING = True
 
 
 class Config:
