@@ -1,5 +1,5 @@
-import helpers.config
 import datetime
+import helpers.config
 
 
 def printIntroMessage(config: helpers.config.Config):
