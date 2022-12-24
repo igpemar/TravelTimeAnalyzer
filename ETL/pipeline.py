@@ -1,17 +1,19 @@
-import ETL.extract, ETL.transform, ETL.load
+import os
+import psutil
 import datetime
 import helpers.config
+import ETL.extract as extract
+import ETL.transform as transform
+import ETL.load as load
 import helpers.logger as logger
-import psutil
-import os
 
 
 def ETLPipeline(
-    TravelStats: ETL.extract.TravelStats, config: helpers.config.Config
+    TravelStats: extract.TravelStats, config: helpers.config.Config
 ) -> None:
     lastDataDump = datetime.datetime.now()
     # Building request
-    reqs = ETL.extract.GoogleMapsRequests()
+    reqs = extract.GoogleMapsRequests()
     reqs.build_request(config)
     while True:
         # Dealing with timestamps
@@ -23,11 +25,11 @@ def ETLPipeline(
         if config.REQ_SEND == 1:
             # Sending request for HOME2WORK
             helpers.logger.printRequestSent(reqID_1)
-            h2wResp = ETL.extract.sendRequest(config, reqs.h2wRequest, reqID_1)
+            h2wResp = extract.sendRequest(config, reqs.h2wRequest, reqID_1)
 
             # Sending request for WORK2HOME
             helpers.logger.printRequestSent(reqID_2)
-            w2hResp = ETL.extract.sendRequest(config, reqs.w2hRequest, reqID_2)
+            w2hResp = extract.sendRequest(config, reqs.w2hRequest, reqID_2)
 
             # Parsing response
             h2wRespJSON = h2wResp.json()
@@ -36,20 +38,20 @@ def ETLPipeline(
         else:
             # Parsing response
             helpers.logger.printRequestSent(reqID_1)
-            h2wRespJSON = ETL.extract.mockh2wResponseAsJson()
+            h2wRespJSON = extract.mockh2wResponseAsJson()
             helpers.logger.printRequestSent(reqID_2)
-            w2hRespJSON = ETL.extract.mockw2hResponseAsJson()
+            w2hRespJSON = extract.mockw2hResponseAsJson()
 
         # Storing data in memory
-        ETL.transform.storeRespDataNP(TravelStats.home2work, reqTimestamp, h2wRespJSON)
-        ETL.transform.storeRespDataNP(TravelStats.work2home, reqTimestamp, w2hRespJSON)
+        transform.storeRespDataNP(TravelStats.home2work, reqTimestamp, h2wRespJSON)
+        transform.storeRespDataNP(TravelStats.work2home, reqTimestamp, w2hRespJSON)
 
         # Persisting data in disk
         timeSinceLastDataDump = reqTimestamp - lastDataDump
         if reqID_1 == 1 or helpers.config.isItTimeToDumpData(
             timeSinceLastDataDump, config
         ):
-            ETL.load.saveTravelStats2txt(TravelStats)
+            load.saveTravelStats2txt(TravelStats)
             lastDataDump = datetime.datetime.now()
             TravelStats.flushStats()
 

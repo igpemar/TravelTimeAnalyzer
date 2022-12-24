@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import time
 import math
 import datetime
-import ETL.extract
+import ETL.extract as extract
 
 axis_mode = "Running"  # Choose between "Running", "FullWeek" and "FullDay"
 
@@ -14,7 +14,7 @@ def postProcess(SAVE_LOCATION="Plot.jgp", sampling=0):
         raise Exception("wrong axis_mode")
     while True:
         # Reading the data
-        TravelStats = ETL.extract.fetchData("Output")
+        TravelStats = extract.fetchData("Output")
         if TravelStats.home2work.isFirstWriteCycle:
             continue
 
@@ -106,7 +106,7 @@ def createFigure():
     return (ax1, ax2)
 
 
-def parseDurationInclTraffic2XYPlot(TravelStats: ETL.extract.TravelStats):
+def parseDurationInclTraffic2XYPlot(TravelStats: extract.TravelStats):
     timestamp = TravelStats.home2work.timestampDT
     t0 = timestamp[0]
     elapsedTimeSeconds = [(x - t0).total_seconds() for x in timestamp]
@@ -115,7 +115,7 @@ def parseDurationInclTraffic2XYPlot(TravelStats: ETL.extract.TravelStats):
     return elapsedTimeSeconds, durationInclTraffic_h2w, durationInclTraffic_w2h
 
 
-def parseDurationExclTraffic2XYPlot(TravelStats: ETL.extract.TravelStats):
+def parseDurationExclTraffic2XYPlot(TravelStats: extract.TravelStats):
     timestamp = TravelStats.home2work.timestampDT
     t0 = timestamp[0]
     elapsedTimeSeconds = [(x - t0).total_seconds() for x in timestamp]
@@ -124,7 +124,7 @@ def parseDurationExclTraffic2XYPlot(TravelStats: ETL.extract.TravelStats):
     return elapsedTimeSeconds, durationExclTraffich2w, durationExclTrafficw2h
 
 
-def parseDistance2XYPlot(TravelStats: ETL.extract.TravelStats):
+def parseDistance2XYPlot(TravelStats: extract.TravelStats):
     timestamp = TravelStats.home2work.timestampDT
     t0 = timestamp[0]
     elapsedTimeSeconds = [(x - t0).total_seconds() for x in timestamp]

@@ -2,17 +2,16 @@ import os
 import time
 import threading
 import numpy as np
-import ETL.transform, ETL.extract
+import ETL.transform as transform
+import ETL.extract as extract
 import helpers.logger as logger
 from os.path import exists
 from filelock import FileLock
 
 
-def saveTravelStats2txt(
-    TravelStats: ETL.extract.TravelStats, destination: str = "Output"
-):
-    h2wData = ETL.transform.travelTimeColumnStack(TravelStats.home2work)
-    w2hData = ETL.transform.travelTimeColumnStack(TravelStats.work2home)
+def saveTravelStats2txt(TravelStats: extract.TravelStats, destination: str = "Output"):
+    h2wData = transform.travelTimeColumnStack(TravelStats.home2work)
+    w2hData = transform.travelTimeColumnStack(TravelStats.work2home)
     logger.log("--> Dumping response data to output file...")
 
     start_time = time.time()
