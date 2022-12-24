@@ -6,6 +6,8 @@ import helpers.logger as logger
 from datetime import datetime as datetime
 from datetime import timedelta as timedelta
 
+DATA_VALIDATION = False
+
 
 class Config:
     def __init__(self, REQ_SEND: bool):
@@ -102,15 +104,18 @@ class Config:
             "DATA_DUMP_FREQUENCY",
             "POST_PROCESSING_SAMPLING_TIME",
         ):
-            if paramValue.isdigit():
-                if int(paramValue) < 1:
-                    logger.log(f"{paramName}, must be a >= 1")
+            if DATA_VALIDATION:
+                if paramValue.isdigit():
+                    if int(paramValue) < 1:
+                        logger.log(f"{paramName}, must be a >= 1")
+                    else:
+                        return int(paramValue)
                 else:
-                    return int(paramValue)
+                    logger.log(
+                        f"wrong input {paramName}, must be a positive integer, exiting."
+                    )
             else:
-                logger.log(
-                    f"wrong input {paramName}, must be a positive integer, exiting."
-                )
+                return float(paramValue)
         elif paramName == "START_TIME":
             try:
                 return datetime.strptime(paramValue, "%Y-%m-%d %H:%M:%S")
