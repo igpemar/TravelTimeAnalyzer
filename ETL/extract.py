@@ -6,6 +6,7 @@ import random
 import requests
 import datetime
 from filelock import FileLock
+import config.config as config
 import helpers.logger as logger
 
 
@@ -14,10 +15,10 @@ class TravelStats:
         self.home2work = TravelTime()
         self.work2home = TravelTime()
 
-    def loadH2WFromCSV(self, filename="Output"):
+    def loadH2WFromCSV(self, filename: str = "Output"):
         self.home2work.loadOutputFromCSV(filename)
 
-    def loadW2FFromCSV(self, filename):
+    def loadW2FFromCSV(self, filename: str = "Output"):
         self.work2home.loadOutputFromCSV(filename)
 
     def getH2W(
@@ -52,7 +53,7 @@ class TravelStats:
             self.home2work.incrementReqID(-inc)
             self.work2home.incrementReqID(-inc)
 
-    def setTimestamp(self, timestamp):
+    def setTimestamp(self, timestamp: datetime.datetime):
         self.home2work.setTimeStamps(timestamp)
         self.work2home.setTimeStamps(timestamp)
 
@@ -105,7 +106,7 @@ class TravelTime:
             self.durationEnclTraffic.append(data.values[i][4])
             self.isFirstWriteCycle = False
 
-    def setTimeStamps(self, timestamp):
+    def setTimeStamps(self, timestamp: datetime.datetime):
         self.timestampDT.append(timestamp)
         self.timestampSTR.append(timestamp.strftime("%Y-%m-%d %H:%M:%S"))
 
@@ -124,7 +125,7 @@ class GoogleMapsRequests:
         self.h2wRequest = ""
         self.workh2wRequest = ""
 
-    def build_request(self, config) -> tuple[str]:
+    def build_request(self, config: config.Config) -> tuple[str]:
         outputFormat = "json"
         requestStart = "https://maps.googleapis.com/maps/api/distancematrix/"
         startPoint = str(config.HOME[0]) + "%2C" + str(config.HOME[1])
@@ -155,7 +156,7 @@ class GoogleMapsRequests:
         )
 
 
-def restartCheck(FORCED_INPUT="", sourcedata="Output") -> TravelStats:
+def restartCheck(FORCED_INPUT: str = "", sourcedata: str = "Output") -> TravelStats:
     while True:
         if FORCED_INPUT != "":
             s = FORCED_INPUT
@@ -183,7 +184,7 @@ def restartCheck(FORCED_INPUT="", sourcedata="Output") -> TravelStats:
             return res
 
 
-def fetchData(sourcedata="Output") -> TravelStats:
+def fetchData(sourcedata: str = "Output") -> TravelStats:
     res = TravelStats()
     res.loadH2WFromCSV(sourcedata + "_h2w.csv")
     res.loadW2FFromCSV(sourcedata + "_w2h.csv")
@@ -192,7 +193,7 @@ def fetchData(sourcedata="Output") -> TravelStats:
     return res
 
 
-def sendRequest(config, request, reqID):
+def sendRequest(config: config.Config, request: requests.request, reqID: int):
     payload, headers = {}, {}
     config.resetRetryCounter()
     while True:
@@ -226,7 +227,7 @@ def sendRequest(config, request, reqID):
     return resp
 
 
-def handleResponse(response) -> bool:
+def handleResponse(response: requests.Response) -> bool:
     if response.ok:
         elapsed = round(response.elapsed.microseconds / 1000, 1)
         logger.log("Request succeded, {elapsed} ms")
@@ -250,7 +251,7 @@ def mockw2hResponseAsJson() -> str:
     return buildJson(duration_in_traffic, duration, distance)
 
 
-def buildJson(duration_in_traffic, duration, distance):
+def buildJson(duration_in_traffic: int, duration: int, distance: int):
     data = {}
     # elements["duration_in_traffic"] = str(duration_in_traffic)
     duration_in_traffic_value = {}

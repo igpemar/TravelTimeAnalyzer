@@ -32,16 +32,16 @@ def saveTravelStats2txt(TravelStats: extract.TravelStats, destination: str = "Ou
     )
 
 
-def writeDataToCsv(file, h2wData):
-    if exists(file):
+def writeDataToCsv(fileName: str, h2wData):
+    if exists(fileName):
         headers = ""
     else:
         headers = "Req #. ; Timestamp ; Distance [km] ; Duration (incl.traffic) [min] ; Duration (excl.traffic) [min]"
 
-    locklock = FileLock(file + ".lock")
+    locklock = FileLock(fileName + ".lock")
 
     with locklock.acquire(timeout=10):
-        f = open(file, "a+")
+        f = open(fileName, "a+")
         np.savetxt(
             f,
             h2wData,
@@ -52,5 +52,5 @@ def writeDataToCsv(file, h2wData):
         )
         locklock.release()
         f.close()
-        if os.path.exists(file + ".lock"):
-            os.remove(file + ".lock")
+        if os.path.exists(fileName + ".lock"):
+            os.remove(fileName + ".lock")
