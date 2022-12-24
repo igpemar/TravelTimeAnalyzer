@@ -2,11 +2,11 @@ import os
 import time
 import threading
 import numpy as np
-import ETL.transform as transform
-import ETL.extract as extract
-import helpers.logger as logger
 from os.path import exists
 from filelock import FileLock
+import ETL.extract as extract
+import helpers.logger as logger
+import ETL.transform as transform
 
 
 def saveTravelStats2txt(TravelStats: extract.TravelStats, dest: str = "Output") -> None:

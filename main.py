@@ -1,12 +1,10 @@
-import time
 import threading
-import helpers.config as config
-import helpers.logger as logger
 import ETL.extract as extract
 import ETL.pipeline as pipeline
+import helpers.config as config
+import helpers.logger as logger
 import helpers.timemanagement as timemngmt
 from PostProcessing.plotter import postProcess
-
 
 REQ_SEND = 0
 RESTART_INPUT = "Y"
@@ -31,7 +29,6 @@ if __name__ == "__main__":
 
     # Start PostProcessing service
     if Config.POST_PROCESSING:
-        time.sleep(1)
         t2 = threading.Thread(
             target=postProcess,
             args=("Output.jpg", Config.POST_PROCESSING_SAMPLING_TIME),
