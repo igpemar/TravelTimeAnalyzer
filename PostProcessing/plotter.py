@@ -9,6 +9,8 @@ from datetime import timedelta as timedelta
 
 axis_mode = "Running"  # Choose between "Running", "FullWeek" and "FullDay"
 
+Vector = list[float]
+
 
 def postProcess(SAVE_LOCATION: str = "Plot.jgp", sampling: int = 0) -> None:
     if not checkAxisMode(axis_mode):
@@ -85,7 +87,7 @@ def initializeAxes(
     ax.set_ylabel(YLABEL, fontsize=YLAB_FS)
 
 
-def setYLim(ax: plt.axes, Y1: list[float], Y2: list[float]) -> None:
+def setYLim(ax: plt.axes, Y1: Vector, Y2: Vector) -> None:
     ax.set_ylim((0, math.ceil(1.1 * max(max(Y1), max(Y2)))))
 
 
@@ -109,7 +111,7 @@ def createFigure() -> tuple[plt.axes, plt.axes]:
 
 def parseDurationInclTraffic2XYPlot(
     TravelStats: extract.TravelStats,
-) -> tuple[list[float], list[float], list[float]]:
+) -> tuple[Vector, Vector, Vector]:
     timestamp = TravelStats.home2work.timestampDT
     t0 = timestamp[0]
     elapsedTimeSeconds = [(x - t0).total_seconds() for x in timestamp]
@@ -120,7 +122,7 @@ def parseDurationInclTraffic2XYPlot(
 
 def parseDurationExclTraffic2XYPlot(
     TravelStats: extract.TravelStats,
-) -> tuple[list[float], list[float], list[float]]:
+) -> tuple[Vector, Vector, Vector]:
     timestamp = TravelStats.home2work.timestampDT
     t0 = timestamp[0]
     elapsedTimeSeconds = [(x - t0).total_seconds() for x in timestamp]
@@ -131,7 +133,7 @@ def parseDurationExclTraffic2XYPlot(
 
 def parseDistance2XYPlot(
     TravelStats: extract.TravelStats,
-) -> tuple[list[float], list[float], list[float]]:
+) -> tuple[Vector, Vector, Vector]:
     timestamp = TravelStats.home2work.timestampDT
     t0 = timestamp[0]
     elapsedTimeSeconds = [(x - t0).total_seconds() for x in timestamp]
