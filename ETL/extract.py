@@ -1,7 +1,7 @@
 import os
 import sys
 import time
-import pandas
+import csv
 import random
 import requests
 import helpers.config as config
@@ -85,23 +85,42 @@ class TravelTime:
 
     def loadOutputFromCSV(self, filename: str):
         try:
-            data = pandas.read_csv(filename, sep=";")
+            # data = pandas.read_csv(filename, sep=";")
+            with open(filename, "r") as f:
+                csvreader = csv.reader(f, delimiter=";")
+                next(csvreader)
+                data = []
+                for row in csvreader:
+                    data.append(row)
+                pass
+
         except:
             logger.log(
                 f"Error reading from {filename}, impossible to restart from existing data"
             )
             return
 
-        for i in range(data.shape[0]):
-            self.reqID.append(data.values[i][0])
-            self.timestampSTR.append(data.values[i][1].strip())
+        # for i in range(data.shape[0]):
+        #     self.reqID.append(data.values[i][0])
+        #     self.timestampSTR.append(data.values[i][1].strip())
+        #     self.timestampDT.append(
+        #         datetime.strptime(data.values[i][1].strip(), "%Y-%m-%d %H:%M:%S")
+        #     )
+        #     self.distanceAVG.append(data.values[i][2])
+        #     self.durationInclTraffic.append(data.values[i][3])
+        #     self.durationEnclTraffic.append(data.values[i][4])
+        #     self.isFirstWriteCycle = False
+        for i in range(len(data)):
+            self.reqID.append(float(data[i][0]))
+            self.timestampSTR.append(data[i][1].strip())
             self.timestampDT.append(
-                datetime.strptime(data.values[i][1].strip(), "%Y-%m-%d %H:%M:%S")
+                datetime.strptime(data[i][1].strip(), "%Y-%m-%d %H:%M:%S")
             )
-            self.distanceAVG.append(data.values[i][2])
-            self.durationInclTraffic.append(data.values[i][3])
-            self.durationEnclTraffic.append(data.values[i][4])
+            self.distanceAVG.append(float(data[i][2]))
+            self.durationInclTraffic.append(float(data[i][3]))
+            self.durationEnclTraffic.append(float(data[i][4]))
             self.isFirstWriteCycle = False
+        pass
 
     def setTimeStamps(self, timestamp: datetime):
         self.timestampDT.append(timestamp)
