@@ -7,6 +7,7 @@ import helpers.config as config
 import helpers.logger as logger
 import ETL.transform as transform
 from datetime import datetime as datetime
+import helpers.timemanagement as timemngmt
 
 
 def ETLPipeline(TravelStats: extract.TravelStats, config: config.Config) -> None:
@@ -47,9 +48,7 @@ def ETLPipeline(TravelStats: extract.TravelStats, config: config.Config) -> None
 
         # Persisting data in disk
         timeSinceLastDataDump = reqTimestamp - lastDataDump
-        if reqID_1 == 1 or helpers.config.isItTimeToDumpData(
-            timeSinceLastDataDump, config
-        ):
+        if reqID_1 == 1 or timemngmt.isItTimeToDumpData(timeSinceLastDataDump, config):
             load.saveTravelStats2txt(TravelStats)
             lastDataDump = datetime.now()
             TravelStats.flushStats()
@@ -57,7 +56,7 @@ def ETLPipeline(TravelStats: extract.TravelStats, config: config.Config) -> None
         # Incrementing request numbers
         TravelStats.incrementRequestIDs(2)
         monitor_total_ram_usage_current_process()
-        helpers.config.waitForNextCycle(reqTimestamp, config)
+        timemngmt.waitForNextCycle(reqTimestamp, config)
 
 
 def monitor_total_ram_usage() -> None:

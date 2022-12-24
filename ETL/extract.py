@@ -124,11 +124,11 @@ class GoogleMapsRequests:
 
     def build_request(self, config: config.Config) -> tuple[str]:
         outputFormat = "json"
-        requestStart = "https://maps.googleapis.com/maps/api/distancematrix/"
+        baseURL = "https://maps.googleapis.com/maps/api/distancematrix/"
         startPoint = str(config.HOME[0]) + "%2C" + str(config.HOME[1])
         endPoint = str(config.WORK[0]) + "%2C" + str(config.WORK[1])
         self.h2wRequest = (
-            requestStart
+            baseURL
             + outputFormat
             + "?destinations="
             + endPoint
@@ -140,7 +140,7 @@ class GoogleMapsRequests:
             + config.API_KEY
         )
         self.w2hRequest = (
-            requestStart
+            baseURL
             + outputFormat
             + "?destinations="
             + startPoint

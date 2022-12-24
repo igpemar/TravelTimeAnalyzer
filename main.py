@@ -4,6 +4,7 @@ import helpers.config as config
 import helpers.logger as logger
 import ETL.extract as extract
 import ETL.pipeline as pipeline
+import helpers.timemanagement as timemngmt
 from PostProcessing.plotter import postProcess
 
 
@@ -22,7 +23,7 @@ if __name__ == "__main__":
     TravelStats = extract.restartCheck(RESTART_INPUT)
 
     # Checking for start time
-    config.waitForStartTime(Config)
+    timemngmt.waitForStartTime(Config)
 
     # Start ETL Pipeline
     t1 = threading.Thread(target=pipeline.ETLPipeline, args=(TravelStats, Config))
