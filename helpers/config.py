@@ -1,4 +1,6 @@
 import os
+import re
+import sys
 import time
 import datetime
 import configparser
@@ -6,45 +8,46 @@ import helpers.logger as logger
 
 
 # Where to
-HOME = (55.688519, 12.528168)  # GPS Coordinates in decimal degrees DDD.DDDDD
-WORK = (55.672162, 12.585666)  # GPS Coordinates in decimal degrees DDD.DDDDD
+# HOME = (55.688519, 12.528168)  # GPS Coordinates in decimal degrees DDD.DDDDD
+# WORK = (55.672162, 12.585666)  # GPS Coordinates in decimal degrees DDD.DDDDD
 
 
 # Request frequency
-HIGH_SAMPLING_TIME = 0.025  # In seconds (integer)
-LOW_SAMPLING_TIME = 0.025  # In seconds (integer)
-START_TIME = datetime.datetime(2022, 12, 12, 18, 9, 0)
+# HIGH_SAMPLING_TIME = 0.025  # In seconds (integer)
+# LOW_SAMPLING_TIME = 0.025  # In seconds (integer)
+# START_TIME = datetime.datetime(2022, 12, 12, 18, 9, 0)
+# POST_PROCESSING_SAMPLING_TIME = 2 * 2
 
 # Data storage
-DATA_DUMP_FREQUENCY = HIGH_SAMPLING_TIME * 10  # In seconds (integer)
+# DATA_DUMP_FREQUENCY = HIGH_SAMPLING_TIME * 10  # In seconds (integer)
 
 # Post Processing
-POST_PROCESSING = True
-POST_PROCESSING_SAMPLING_TIME = DATA_DUMP_FREQUENCY * 2
+# POST_PROCESSING = True
 
 
 class Config:
     def __init__(self, REQ_SEND: bool):
         # Where to
-        self.HOME = HOME
-        self.WORK = WORK
+        self.HOME = self.parseInputParam("HOME")
+        self.WORK = self.parseInputParam("WORK")
 
         # Request Frequency
-        self.DATA_DUMP_FREQUENCY = DATA_DUMP_FREQUENCY
-        self.HIGH_SAMPLING_FREQUENCY = HIGH_SAMPLING_TIME
-        self.LOW_SAMPLING_FREQUENCY = LOW_SAMPLING_TIME
-        self.START_TIME = START_TIME
+        self.HIGH_SAMPLING_FREQUENCY = self.parseInputParam("HIGH_SAMPLING_TIME")
+        self.LOW_SAMPLING_FREQUENCY = self.parseInputParam("LOW_SAMPLING_TIME")
+        self.DATA_DUMP_FREQUENCY = self.parseInputParam("DATA_DUMP_FREQUENCY")
+        self.START_TIME = self.parseInputParam("START_TIME")
         self.initiateAPIkey()
+
+        # Post processing
+        self.POST_PROCESSING = self.parseInputParam("POST_PROCESSING")
+        self.POST_PROCESSING_SAMPLING_TIME = self.parseInputParam(
+            "POST_PROCESSING_SAMPLING_TIME"
+        )
 
         # Request retry frequency
         self.RETRY_INTERVAL = 1  # seconds
         self.RETRY_COUNTER = 1
         self.RETRY_MAX_TRIES = 5
-
-        # Post processing
-        self.POST_PROCESSING = POST_PROCESSING
-        self.POST_PROCESSING_SAMPLING_TIME = POST_PROCESSING_SAMPLING_TIME
-
         self.REQ_SEND = REQ_SEND
 
     def initiateAPIkey(
@@ -75,6 +78,69 @@ class Config:
             logger.log("Press any key to continue...")
             input("")
             return
+
+    def parseInputParam(self, param):
+        parser = configparser.ConfigParser()
+        if os.path.exists("input.txt"):
+            parser.read("input.txt")
+            try:
+                parsedParam = parser.get("Input Data", param)
+            except configparser.NoOptionError:
+                logger.log(
+                    f"{param} not found in input.txt, unable to parse input data, exiting."
+                )
+            else:
+                if parsedParam == "":
+                    logger.log(f"Empty {param}, unable to parse input data, exiting.")
+                else:
+                    validParam = self.validateParam(param, parsedParam)
+                    return validParam
+        else:
+            logger.log("input.txt not found, unable to parse input data, exiting.")
+        sys.exit()
+
+    def validateParam(self, paramName, paramValue):
+        if paramName in ("WORK", "HOME"):
+            pattern = re.compile("^\((-?\d{0,2}.\d*),\s?(-?\d{0,2}.\d*)\)$")
+            a = re.findall(pattern, paramValue)
+            if a:
+                if len(a[0]) == 2:
+                    return (float(a[0][0]), float(a[0][1]))
+            logger.log(
+                f"wrong input {paramName}, must be in (DD.DDDDDD, DD.DDDDDD) format, exiting."
+            )
+        elif paramName in (
+            "HIGH_SAMPLING_TIME",
+            "LOW_SAMPLING_TIME",
+            "DATA_DUMP_FREQUENCY",
+            "POST_PROCESSING_SAMPLING_TIME",
+        ):
+            if paramValue.isdigit():
+                if int(paramValue) < 1:
+                    logger.log(f"{paramName}, must be a >= 1")
+                else:
+                    return int(paramValue)
+            else:
+                logger.log(
+                    f"wrong input {paramName}, must be a positive integer, exiting."
+                )
+        elif paramName == "START_TIME":
+            try:
+                return datetime.datetime.strptime(paramValue, "%Y-%m-%d %H:%M:%S")
+            except:
+                logger.log(
+                    f"wrong input {paramName}, must be in a valid YYYY-MM-DD HH:MM:SS format, exiting."
+                )
+        elif paramName == "POST_PROCESSING":
+            if paramValue.upper() in ("TRUE", "FALSE"):
+                if paramValue.upper() == "TRUE":
+                    return True
+                elif paramValue.upper() == "FALSE":
+                    return False
+            else:
+                logger.log(f"wrong input {paramName}, must be a boolean, exiting.")
+
+        sys.exit()
 
     def getApiKey(
         self,
