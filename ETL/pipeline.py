@@ -22,13 +22,14 @@ def ETLPipeline(TravelStats: extract.TravelStats, config: config.Config) -> None
         # Sending Requests
         reqID_1 = TravelStats.home2work.reqID[-1]
         reqID_2 = TravelStats.work2home.reqID[-1]
+
         if config.REQ_SEND == 1:
             # Sending request for HOME2WORK
-            helpers.logger.printRequestSent(reqID_1)
+            logger.logRequestSent(reqID_1)
             h2wResp = extract.sendRequest(config, reqs.h2wRequest, reqID_1)
 
             # Sending request for WORK2HOME
-            helpers.logger.printRequestSent(reqID_2)
+            logger.logRequestSent(reqID_2)
             w2hResp = extract.sendRequest(config, reqs.w2hRequest, reqID_2)
 
             # Parsing response
@@ -37,9 +38,9 @@ def ETLPipeline(TravelStats: extract.TravelStats, config: config.Config) -> None
 
         else:
             # Parsing response
-            helpers.logger.logRequestSent(reqID_1)
+            logger.logRequestSent(reqID_1)
             h2wRespJSON = extract.mockh2wResponseAsJson()
-            helpers.logger.logRequestSent(reqID_2)
+            logger.logRequestSent(reqID_2)
             w2hRespJSON = extract.mockw2hResponseAsJson()
 
         # Storing data in memory
