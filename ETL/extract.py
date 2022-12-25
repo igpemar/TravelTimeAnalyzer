@@ -91,8 +91,10 @@ class TravelTime:
                 data = []
                 for row in csvreader:
                     data.append(row)
-                pass
-
+        except FileNotFoundError:
+            return
+        except StopIteration:
+            return
         except:
             logger.log(
                 f"Error reading from {filename}, impossible to restart from existing data"
@@ -109,7 +111,6 @@ class TravelTime:
             self.durationInclTraffic.append(float(data[i][3]))
             self.durationEnclTraffic.append(float(data[i][4]))
             self.isFirstWriteCycle = False
-        pass
 
     def setTimeStamps(self, timestamp: datetime):
         self.timestampDT.append(timestamp)
