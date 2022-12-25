@@ -89,8 +89,7 @@ class Config:
             else:
                 if parsedParam == "":
                     if param == "START_TIME":
-                        logger.log(f"Empty {param}, defaulting to now.")
-                        return datetime.now()
+                        return self.defaultValue(param)
                     else:
                         logger.log(
                             f"Empty {param}, unable to parse input data, exiting."
@@ -147,6 +146,11 @@ class Config:
                 logger.log(f"wrong input {paramName}, must be a boolean, exiting.")
 
         sys.exit()
+
+    def defaultValue(self, param: str):
+        if param == "START_TIME":
+            logger.log(f"Empty {param}, defaulting to now.")
+            return datetime.now()
 
     def incRetryCounter(
         self,
