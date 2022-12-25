@@ -60,11 +60,6 @@ def ETLPipeline(TravelStats: ds.TravelStats, config: config.Config) -> None:
         timemngmt.waitForNextCycle(reqTimestamp, config)
 
 
-def monitor_total_ram_usage() -> None:
-    ram_usage = psutil.virtual_memory()
-    logger.log(f" RAM Usage: {round(ram_usage.used/1024/1024,1)} MB")
-
-
 def monitor_total_ram_usage_current_process() -> None:
     process = psutil.Process(os.getpid())
     logger.log(
