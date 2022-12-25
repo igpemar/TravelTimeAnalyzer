@@ -13,6 +13,7 @@ class TravelStats:
     def __init__(self):
         self.home2work = TravelTime()
         self.work2home = TravelTime()
+        self.initiateRequestIDs()
 
     def loadH2WFromCSV(self, filename: str = "Output"):
         self.home2work.loadOutputFromCSV(filename)
@@ -35,6 +36,10 @@ class TravelStats:
     ):
         self.home2work.flushStats()
         self.work2home.flushStats()
+
+    def initiateRequestIDs(self):
+        self.home2work.reqID = [1]
+        self.work2home.reqID = [2]
 
     def incrementRequestIDs(self, inc: int):
         if not self.home2work.reqID:
@@ -175,8 +180,7 @@ def restartCheck(FORCED_INPUT: str = "", sourcedata: str = "Output") -> TravelSt
             sys.exit(0)
         elif s == "y" or s == "Y":
             clearOldExportFiles(sourcedata)
-            res.home2work.reqID = [1]
-            res.work2home.reqID = [2]
+            res.initiateRequestIDs()
             return res
         elif s == "n" or s == "N":
             res.loadH2WFromCSV(sourcedata + "_h2w.csv")
