@@ -17,10 +17,10 @@ class Config:
 
         # Request Frequency
         self.HIGH_SAMPLING_FREQUENCY = self.parseInputParam(
-            "Input Data", "HIGH_SAMPLING_TIME"
+            "Input Data", "REQUEST_INTERVAL_HIGH"
         )
         self.LOW_SAMPLING_FREQUENCY = self.parseInputParam(
-            "Input Data", "LOW_SAMPLING_TIME"
+            "Input Data", "REQUEST_INTERVAL_LOW"
         )
         self.DATA_DUMP_INTERVAL = self.parseInputParam(
             "Input Data", "DATA_DUMP_INTERVAL"
@@ -105,8 +105,8 @@ class Config:
         if paramName in ("WORK", "HOME"):
             return self.validateCoordinates(paramName, paramValue)
         elif paramName in (
-            "HIGH_SAMPLING_TIME",
-            "LOW_SAMPLING_TIME",
+            "REQUEST_INTERVAL_HIGH",
+            "REQUEST_INTERVAL_LOW",
             "DATA_DUMP_INTERVAL",
             "POST_PROCESSING_INTERVAL",
         ):
