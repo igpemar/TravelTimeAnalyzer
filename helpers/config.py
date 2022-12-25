@@ -29,8 +29,8 @@ class Config:
 
         # Post processing
         self.POST_PROCESSING = self.parseInputParam("Input Data", "POST_PROCESSING")
-        self.POST_PROCESSING_SAMPLING_TIME = self.parseInputParam(
-            "Input Data", "POST_PROCESSING_SAMPLING_TIME"
+        self.POST_PROCESSING_INTERVAL = self.parseInputParam(
+            "Input Data", "POST_PROCESSING_INTERVAL"
         )
 
         # Delayed start
@@ -108,7 +108,7 @@ class Config:
             "HIGH_SAMPLING_TIME",
             "LOW_SAMPLING_TIME",
             "DATA_DUMP_INTERVAL",
-            "POST_PROCESSING_SAMPLING_TIME",
+            "POST_PROCESSING_INTERVAL",
         ):
             if DATA_VALIDATION:
                 if paramValue.isdigit():

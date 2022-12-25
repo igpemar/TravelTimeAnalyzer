@@ -32,5 +32,5 @@ if __name__ == "__main__":
 
         t2 = threading.Thread(
             target=postProcess,
-            args=("Output.jpg", Config.POST_PROCESSING_SAMPLING_TIME),
+            args=("Output.jpg", Config.POST_PROCESSING_INTERVAL),
         ).start()
