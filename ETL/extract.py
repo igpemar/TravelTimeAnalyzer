@@ -171,7 +171,7 @@ def restartCheck(FORCED_INPUT: str = "", sourcedata: str = "Output") -> TravelSt
             )
         res = TravelStats()
         if s == "A" or s == "A":
-            sys.exit()
+            sys.exit(0)
         elif s == "y" or s == "Y":
             clearOldExportFiles(sourcedata)
             res.home2work.reqID = [1]
@@ -217,7 +217,7 @@ def sendRequest(
                 continue
             else:
                 logger.log(f"Max number of tries reached for Request {reqID}, exiting")
-                sys.exit()
+                sys.exit(1)
 
     config.resetRetryCounter()
     ok = handleResponse(resp)
@@ -229,7 +229,7 @@ def sendRequest(
             continue
         else:
             logger.log(f"Max number of tries reached for Request {reqID}, exiting")
-            sys.exit()
+            sys.exit(1)
 
     return resp
 
