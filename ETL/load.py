@@ -26,10 +26,7 @@ def saveTravelStats2txt(TravelStats: ds.TravelStats, dest: str = "Output") -> No
     elapsed = time.time() - start_time
 
     logger.log(f"---> Done Writing! {round(elapsed*1000,2)} ms")
-    logger.log(
-        str(TravelStats.home2work.timestampSTR[-1])
-        + " ; ----------------------------------------------"
-    )
+    logger.log("----------------------------------------------")
 
 
 def writeDataToCsv(fileName: str, h2wData: np.ndarray) -> None:
