@@ -22,8 +22,8 @@ class Config:
         self.LOW_SAMPLING_FREQUENCY = self.parseInputParam(
             "Input Data", "LOW_SAMPLING_TIME"
         )
-        self.DATA_DUMP_FREQUENCY = self.parseInputParam(
-            "Input Data", "DATA_DUMP_FREQUENCY"
+        self.DATA_DUMP_INTERVAL = self.parseInputParam(
+            "Input Data", "DATA_DUMP_INTERVAL"
         )
         self.initiateAPIkey()
 
@@ -103,18 +103,11 @@ class Config:
 
     def validateParam(self, paramName: str, paramValue: str):
         if paramName in ("WORK", "HOME"):
-            pattern = re.compile("^\((-?\d{0,2}.\d*),\s?(-?\d{0,2}.\d*)\)$")
-            a = re.findall(pattern, paramValue)
-            if a:
-                if len(a[0]) == 2:
-                    return (float(a[0][0]), float(a[0][1]))
-            logger.log(
-                f"wrong input {paramName}, must be in (DD.DDDDDD, DD.DDDDDD) format, exiting."
-            )
+            return self.validateCoordinates(paramName, paramValue)
         elif paramName in (
             "HIGH_SAMPLING_TIME",
             "LOW_SAMPLING_TIME",
-            "DATA_DUMP_FREQUENCY",
+            "DATA_DUMP_INTERVAL",
             "POST_PROCESSING_SAMPLING_TIME",
         ):
             if DATA_VALIDATION:
@@ -145,6 +138,17 @@ class Config:
             else:
                 logger.log(f"wrong input {paramName}, must be a boolean, exiting.")
 
+        sys.exit()
+
+    def validateCoordinates(self, location, coordinates):
+        pattern = re.compile("^\((-?\d{0,2}.\d*),\s?(-?\d{0,2}.\d*)\)$")
+        a = re.findall(pattern, coordinates)
+        if a:
+            if len(a[0]) == 2:
+                return (float(a[0][0]), float(a[0][1]))
+        logger.log(
+            f"wrong input {location}, must be in (DD.DDDDDD, DD.DDDDDD) format, exiting."
+        )
         sys.exit()
 
     def defaultValue(self, param: str):
