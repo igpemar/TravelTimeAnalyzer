@@ -27,9 +27,11 @@ def waitForNextCycle(reqTimestamp: datetime, config: config.Config) -> None:
     wait_time = findwaittime(
         reqTimestamp, config.HIGH_SAMPLING_FREQUENCY, config.LOW_SAMPLING_FREQUENCY
     )
+    runTimeSeconds = (datetime.now() - reqTimestamp).total_seconds()
     logger.log("- Waiting " + str(wait_time) + " second(s) for next request cycle-")
     logger.log("----------------------------------------------")
-    time.sleep(wait_time)
+    if wait_time > runTimeSeconds:
+        time.sleep(wait_time - runTimeSeconds)
 
 
 def waitForStartTime(config: config.Config) -> None:
