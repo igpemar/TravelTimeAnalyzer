@@ -4,6 +4,7 @@ import ETL.pipeline as pipeline
 import helpers.config as config
 import helpers.logger as logger
 import helpers.timeutils as timemngmt
+import db.connector as db
 
 REQ_SEND = 0
 RESTART_INPUT = "Y"
@@ -14,6 +15,9 @@ if __name__ == "__main__":
 
     # Print intro message
     logger.logIntroMessage(Config.HOME, Config.WORK)
+
+    # Setting up database environment
+    db.setDatabases()
 
     # Checking for restart
     logger.log("Checking for restart...")
