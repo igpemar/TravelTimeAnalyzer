@@ -12,29 +12,27 @@ DATA_VALIDATION = False
 class Config:
     def __init__(self, REQ_SEND: bool):
         # Where to
-        self.HOME = self.parseInputParam("Input Data", "HOME")
-        self.WORK = self.parseInputParam("Input Data", "WORK")
+        self.HOME = self.parseInput("Input Data", "HOME")
+        self.WORK = self.parseInput("Input Data", "WORK")
 
         # Request Frequency
-        self.HIGH_SAMPLING_FREQUENCY = self.parseInputParam(
+        self.HIGH_SAMPLING_FREQUENCY = self.parseInput(
             "Input Data", "REQUEST_INTERVAL_HIGH"
         )
-        self.LOW_SAMPLING_FREQUENCY = self.parseInputParam(
+        self.LOW_SAMPLING_FREQUENCY = self.parseInput(
             "Input Data", "REQUEST_INTERVAL_LOW"
         )
-        self.DATA_DUMP_INTERVAL = self.parseInputParam(
-            "Input Data", "DATA_DUMP_INTERVAL"
-        )
+        self.DATA_DUMP_INTERVAL = self.parseInput("Input Data", "DATA_DUMP_INTERVAL")
         self.initiateAPIkey()
 
         # Post processing
-        self.POST_PROCESSING = self.parseInputParam("Input Data", "POST_PROCESSING")
-        self.POST_PROCESSING_INTERVAL = self.parseInputParam(
+        self.POST_PROCESSING = self.parseInput("Input Data", "POST_PROCESSING")
+        self.POST_PROCESSING_INTERVAL = self.parseInput(
             "Input Data", "POST_PROCESSING_INTERVAL"
         )
 
         # Delayed start
-        self.START_TIME = self.parseInputParam("Optional", "START_TIME")
+        self.START_TIME = self.parseInput("Optional", "START_TIME")
 
         # Request retry frequency
         self.RETRY_INTERVAL = 1  # seconds
@@ -76,7 +74,7 @@ class Config:
     ):
         return self.API_KEY
 
-    def parseInputParam(self, section: str, param: str):
+    def parseInput(self, section: str, param: str):
         parser = configparser.ConfigParser()
         if os.path.exists("input.txt"):
             parser.read("input.txt")
