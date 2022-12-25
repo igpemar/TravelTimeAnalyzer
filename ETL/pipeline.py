@@ -62,7 +62,4 @@ def ETLPipeline(TravelStats: ds.TravelStats, config: config.Config) -> None:
 
 def monitor_total_ram_usage_current_process() -> None:
     process = psutil.Process(os.getpid())
-    logger.log(
-        str(datetime.now())[0:19]
-        + f" ; RAM Usage: {round(process.memory_info().rss/1024/1024,1)} MB"
-    )
+    logger.log(f"Current RAM Usage: {round(process.memory_info().rss/1024/1024,1)} MB")
