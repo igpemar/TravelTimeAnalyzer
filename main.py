@@ -3,7 +3,7 @@ import ETL.extract as extract
 import ETL.pipeline as pipeline
 import helpers.config as config
 import helpers.logger as logger
-import helpers.timemanagement as timemngmt
+import helpers.timeutils as timemngmt
 
 REQ_SEND = 0
 RESTART_INPUT = "Y"

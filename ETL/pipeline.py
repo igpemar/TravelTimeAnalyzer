@@ -7,7 +7,7 @@ import helpers.logger as logger
 import ETL.transform as transform
 import helpers.datastructures as ds
 from datetime import datetime as datetime
-import helpers.timemanagement as timemngmt
+import helpers.timeutils as timemngmt
 
 
 def ETLPipeline(TravelStats: ds.TravelStats, config: config.Config) -> None:
