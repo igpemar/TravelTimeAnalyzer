@@ -1,11 +1,11 @@
 import requests
 import numpy as np
-import ETL.extract as extract
 from datetime import datetime
+import helpers.datastructures as ds
 
 
 def storeRespDataNP(
-    TravelTime: extract.TravelTime,
+    TravelTime: ds.TravelTime,
     reqTimestamp: datetime,
     response: requests.Response,
 ) -> None:
@@ -22,7 +22,7 @@ def storeRespDataNP(
     TravelTime.isFirstWriteCycle = False
 
 
-def travelTimeColumnStack(TravelTime: extract.TravelTime) -> np.ndarray:
+def travelTimeColumnStack(TravelTime: ds.TravelTime) -> np.ndarray:
     return np.column_stack(
         (
             TravelTime.reqID,

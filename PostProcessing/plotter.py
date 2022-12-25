@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import ETL.extract as extract
+import helpers.datastructures as ds
 from datetime import datetime as datetime
 from datetime import timedelta as timedelta
 
@@ -110,7 +111,7 @@ def createFigure() -> tuple[plt.axes, plt.axes]:
 
 
 def parseDurationInclTraffic2XYPlot(
-    TravelStats: extract.TravelStats,
+    TravelStats: ds.TravelStats,
 ) -> tuple[Vector, Vector, Vector]:
     timestamp = TravelStats.home2work.timestampDT
     t0 = timestamp[0]
@@ -121,7 +122,7 @@ def parseDurationInclTraffic2XYPlot(
 
 
 def parseDurationExclTraffic2XYPlot(
-    TravelStats: extract.TravelStats,
+    TravelStats: ds.TravelStats,
 ) -> tuple[Vector, Vector, Vector]:
     timestamp = TravelStats.home2work.timestampDT
     t0 = timestamp[0]
@@ -132,7 +133,7 @@ def parseDurationExclTraffic2XYPlot(
 
 
 def parseDistance2XYPlot(
-    TravelStats: extract.TravelStats,
+    TravelStats: ds.TravelStats,
 ) -> tuple[Vector, Vector, Vector]:
     timestamp = TravelStats.home2work.timestampDT
     t0 = timestamp[0]

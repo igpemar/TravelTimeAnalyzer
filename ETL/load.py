@@ -4,12 +4,12 @@ import threading
 import numpy as np
 from os.path import exists
 from filelock import FileLock
-import ETL.extract as extract
 import helpers.logger as logger
 import ETL.transform as transform
+import helpers.datastructures as ds
 
 
-def saveTravelStats2txt(TravelStats: extract.TravelStats, dest: str = "Output") -> None:
+def saveTravelStats2txt(TravelStats: ds.TravelStats, dest: str = "Output") -> None:
     h2wData = transform.travelTimeColumnStack(TravelStats.home2work)
     w2hData = transform.travelTimeColumnStack(TravelStats.work2home)
     logger.log("--> Dumping response data to output file...")

@@ -1,19 +1,19 @@
 import os
 import psutil
-import helpers.config
 import ETL.load as load
 import ETL.extract as extract
 import helpers.config as config
 import helpers.logger as logger
 import ETL.transform as transform
+import helpers.datastructures as ds
 from datetime import datetime as datetime
 import helpers.timemanagement as timemngmt
 
 
-def ETLPipeline(TravelStats: extract.TravelStats, config: config.Config) -> None:
+def ETLPipeline(TravelStats: ds.TravelStats, config: config.Config) -> None:
     lastDataDump = datetime.now()
     # Building request
-    reqs = extract.GoogleMapsRequests()
+    reqs = ds.GoogleMapsRequests()
     reqs.build_request(config)
     while True:
         # Dealing with timestamps
