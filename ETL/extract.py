@@ -237,7 +237,7 @@ def sendRequest(
 def handleResponse(response: requests.Response) -> bool:
     if response.ok:
         elapsed = round(response.elapsed.microseconds / 1000, 1)
-        logger.log("Request succeded, {elapsed} ms")
+        logger.log(f"Request succeded, {elapsed} ms")
         return True
     else:
         logger.log("ERROR: An error occurred while performing the API requests")
