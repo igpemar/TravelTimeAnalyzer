@@ -12,21 +12,29 @@ DATA_VALIDATION = False
 class Config:
     def __init__(self, REQ_SEND: bool):
         # Where to
-        self.HOME = self.parseInputParam("HOME")
-        self.WORK = self.parseInputParam("WORK")
+        self.HOME = self.parseInputParam("Input Data", "HOME")
+        self.WORK = self.parseInputParam("Input Data", "WORK")
 
         # Request Frequency
-        self.HIGH_SAMPLING_FREQUENCY = self.parseInputParam("HIGH_SAMPLING_TIME")
-        self.LOW_SAMPLING_FREQUENCY = self.parseInputParam("LOW_SAMPLING_TIME")
-        self.DATA_DUMP_FREQUENCY = self.parseInputParam("DATA_DUMP_FREQUENCY")
-        self.START_TIME = self.parseInputParam("START_TIME")
+        self.HIGH_SAMPLING_FREQUENCY = self.parseInputParam(
+            "Input Data", "HIGH_SAMPLING_TIME"
+        )
+        self.LOW_SAMPLING_FREQUENCY = self.parseInputParam(
+            "Input Data", "LOW_SAMPLING_TIME"
+        )
+        self.DATA_DUMP_FREQUENCY = self.parseInputParam(
+            "Input Data", "DATA_DUMP_FREQUENCY"
+        )
         self.initiateAPIkey()
 
         # Post processing
-        self.POST_PROCESSING = self.parseInputParam("POST_PROCESSING")
+        self.POST_PROCESSING = self.parseInputParam("Input Data", "POST_PROCESSING")
         self.POST_PROCESSING_SAMPLING_TIME = self.parseInputParam(
-            "POST_PROCESSING_SAMPLING_TIME"
+            "Input Data", "POST_PROCESSING_SAMPLING_TIME"
         )
+
+        # Delayed start
+        self.START_TIME = self.parseInputParam("Optional", "START_TIME")
 
         # Request retry frequency
         self.RETRY_INTERVAL = 1  # seconds
@@ -68,19 +76,25 @@ class Config:
     ):
         return self.API_KEY
 
-    def parseInputParam(self, param: str):
+    def parseInputParam(self, section: str, param: str):
         parser = configparser.ConfigParser()
         if os.path.exists("input.txt"):
             parser.read("input.txt")
             try:
-                parsedParam = parser.get("Input Data", param)
+                parsedParam = parser.get(section, param)
             except configparser.NoOptionError:
                 logger.log(
                     f"{param} not found in input.txt, unable to parse input data, exiting."
                 )
             else:
                 if parsedParam == "":
-                    logger.log(f"Empty {param}, unable to parse input data, exiting.")
+                    if param == "START_TIME":
+                        logger.log(f"Empty {param}, defaulting to now.")
+                        return datetime.now()
+                    else:
+                        logger.log(
+                            f"Empty {param}, unable to parse input data, exiting."
+                        )
                 else:
                     validParam = self.validateParam(param, parsedParam)
                     return validParam
@@ -119,7 +133,7 @@ class Config:
         elif paramName == "START_TIME":
             try:
                 return datetime.strptime(paramValue, "%Y-%m-%d %H:%M:%S")
-            except:
+            except ValueError:
                 logger.log(
                     f"wrong input {paramName}, must be in a valid YYYY-MM-DD HH:MM:SS format, exiting."
                 )
