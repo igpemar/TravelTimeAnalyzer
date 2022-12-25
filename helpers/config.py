@@ -99,7 +99,7 @@ class Config:
                     return validParam
         else:
             logger.log("input.txt not found, unable to parse input data, exiting.")
-        sys.exit()
+        sys.exit(1)
 
     def validateParam(self, paramName: str, paramValue: str):
         if paramName in ("WORK", "HOME"):
@@ -111,36 +111,16 @@ class Config:
             "POST_PROCESSING_INTERVAL",
         ):
             if DATA_VALIDATION:
-                if paramValue.isdigit():
-                    if int(paramValue) < 1:
-                        logger.log(f"{paramName}, must be a >= 1")
-                    else:
-                        return int(paramValue)
-                else:
-                    logger.log(
-                        f"wrong input {paramName}, must be a positive integer, exiting."
-                    )
+                return self.validateIntervals(paramName, paramValue)
             else:
                 return float(paramValue)
         elif paramName == "START_TIME":
-            try:
-                return datetime.strptime(paramValue, "%Y-%m-%d %H:%M:%S")
-            except ValueError:
-                logger.log(
-                    f"wrong input {paramName}, must be in a valid YYYY-MM-DD HH:MM:SS format, exiting."
-                )
+            return self.validateStartTime(self, paramName)
         elif paramName == "POST_PROCESSING":
-            if paramValue.upper() in ("TRUE", "FALSE"):
-                if paramValue.upper() == "TRUE":
-                    return True
-                elif paramValue.upper() == "FALSE":
-                    return False
-            else:
-                logger.log(f"wrong input {paramName}, must be a boolean, exiting.")
+            return self.validateBoolean(paramName, paramValue)
+        sys.exit(1)
 
-        sys.exit()
-
-    def validateCoordinates(self, location, coordinates):
+    def validateCoordinates(self, location: str, coordinates: str):
         pattern = re.compile("^\((-?\d{0,2}.\d*),\s?(-?\d{0,2}.\d*)\)$")
         a = re.findall(pattern, coordinates)
         if a:
@@ -149,7 +129,36 @@ class Config:
         logger.log(
             f"wrong input {location}, must be in (DD.DDDDDD, DD.DDDDDD) format, exiting."
         )
-        sys.exit()
+        sys.exit(1)
+
+    def validateStartTime(self, start_time: str):
+        try:
+            return datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            logger.log(
+                f"wrong input {start_time}, must be in a valid YYYY-MM-DD HH:MM:SS format, exiting."
+            )
+            sys.exit(1)
+
+    def validateBoolean(self, paramName: str, bool: str):
+        if bool.upper() in ("TRUE", "FALSE"):
+            if bool.upper() == "TRUE":
+                return True
+            elif bool.upper() == "FALSE":
+                return False
+        else:
+            logger.log(f"wrong input {paramName}, must be a boolean, exiting.")
+            sys.exit(1)
+
+    def validateIntervals(self, paramName: str, paramValue: str):
+        if paramValue.isdigit():
+            if int(paramValue) < 1:
+                logger.log(f"{paramName}, must be a >= 1")
+            else:
+                return int(paramValue)
+        else:
+            logger.log(f"wrong input {paramName}, must be a positive integer, exiting.")
+            sys.exit(1)
 
     def defaultValue(self, param: str):
         if param == "START_TIME":
