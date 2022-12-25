@@ -11,7 +11,7 @@ def isItTimeToStart(start_time: datetime) -> bool:
 
 def isItTimeToDumpData(timeSinceLastDataDump: datetime, config: config.Config) -> bool:
     return timeSinceLastDataDump >= timedelta(
-        seconds=config.DATA_DUMP_FREQUENCY, microseconds=10
+        seconds=config.DATA_DUMP_INTERVAL, microseconds=10
     )
 
 
