@@ -7,61 +7,61 @@ import db.connector as db
 
 class TravelStats:
     def __init__(self):
-        self.home2work = TravelTime()
-        self.work2home = TravelTime()
+        self.A2B = TravelTime()
+        self.B2A = TravelTime()
         self.initiateRequestIDs()
 
-    def loadH2WFromCSV(self, filename: str = "Output"):
-        self.home2work.loadOutputFromCSV(filename)
+    def loadA2BFromCSV(self, filename: str = "Output"):
+        self.A2B.loadOutputFromCSV(filename)
 
     def loadW2FFromCSV(self, filename: str = "Output"):
-        self.work2home.loadOutputFromCSV(filename)
+        self.B2A.loadOutputFromCSV(filename)
 
-    def loadH2WFromDB(self):
-        self.home2work.loadOutputFromDB("H2W")
+    def loadA2BFromDB(self):
+        self.A2B.loadOutputFromDB("A2B")
 
-    def loadW2HFromDB(self):
-        self.work2home.loadOutputFromDB("W2H")
+    def loadB2AFromDB(self):
+        self.B2A.loadOutputFromDB("B2A")
 
-    def getH2W(
+    def getA2B(
         self,
     ):
-        return self.home2work
+        return self.A2B
 
-    def getW2H(
+    def getB2A(
         self,
     ):
-        return self.work2home
+        return self.B2A
 
     def flushStats(
         self,
     ):
-        self.home2work.flushStats()
-        self.work2home.flushStats()
+        self.A2B.flushStats()
+        self.B2A.flushStats()
 
     def initiateRequestIDs(self):
-        self.home2work.reqID = [1]
-        self.work2home.reqID = [2]
+        self.A2B.reqID = [1]
+        self.B2A.reqID = [2]
 
     def incrementRequestIDs(self, inc: int):
-        if not self.home2work.reqID:
-            self.home2work.setReqID(1)
-            self.work2home.setReqID(2)
+        if not self.A2B.reqID:
+            self.A2B.setReqID(1)
+            self.B2A.setReqID(2)
         else:
-            self.home2work.incrementReqID(inc)
-            self.work2home.incrementReqID(inc)
+            self.A2B.incrementReqID(inc)
+            self.B2A.incrementReqID(inc)
 
     def decrementRequestIDs(self, inc: int):
-        if not self.home2work.reqID:
-            self.home2work.setReqID(1)
-            self.work2home.setReqID(2)
+        if not self.A2B.reqID:
+            self.A2B.setReqID(1)
+            self.B2A.setReqID(2)
         else:
-            self.home2work.incrementReqID(-inc)
-            self.work2home.incrementReqID(-inc)
+            self.A2B.incrementReqID(-inc)
+            self.B2A.incrementReqID(-inc)
 
     def setTimestamp(self, timestamp: datetime):
-        self.home2work.setTimeStamps(timestamp)
-        self.work2home.setTimeStamps(timestamp)
+        self.A2B.setTimeStamps(timestamp)
+        self.B2A.setTimeStamps(timestamp)
 
 
 class TravelTime:
@@ -144,15 +144,15 @@ class TravelTime:
 
 class GoogleMapsRequests:
     def __init__(self):
-        self.h2wRequest = ""
-        self.workh2wRequest = ""
+        self.A2BRequest = ""
+        self.B2ARequest = ""
 
     def build_request(self, config: config.Config) -> tuple[str]:
         outputFormat = "json"
         baseURL = "https://maps.googleapis.com/maps/api/distancematrix/"
-        startPoint = str(config.HOME[0]) + "%2C" + str(config.HOME[1])
-        endPoint = str(config.WORK[0]) + "%2C" + str(config.WORK[1])
-        self.h2wRequest = (
+        startPoint = str(config.A[0]) + "%2C" + str(config.A[1])
+        endPoint = str(config.B[0]) + "%2C" + str(config.B[1])
+        self.A2BRequest = (
             baseURL
             + outputFormat
             + "?destinations="
@@ -164,7 +164,7 @@ class GoogleMapsRequests:
             + "&key="
             + config.API_KEY
         )
-        self.w2hRequest = (
+        self.B2ARequest = (
             baseURL
             + outputFormat
             + "?destinations="

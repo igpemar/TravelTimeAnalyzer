@@ -33,33 +33,29 @@ def restartCheck(
             return res
         elif s == "n" or s == "N":
             if persist.upper() == "CSV":
-                res.loadH2WFromCSV(sourcedata + "_h2w.csv")
-                res.loadW2FFromCSV(sourcedata + "_w2h.csv")
+                res.loadA2BFromCSV(sourcedata + "_A2B.csv")
+                res.loadW2FFromCSV(sourcedata + "_B2A.csv")
             elif persist.upper() == "DB":
-                res.loadH2WFromDB()
-                res.loadW2HFromDB()
+                res.loadA2BFromDB()
+                res.loadB2AFromDB()
             else:
                 logger.log(f"Wrong persist mode: {persist}, must be 'csv' or 'db'")
 
-            res.home2work.reqID = list(
-                range(1, len(res.home2work.distanceAVG) * 2 + 2, 2)
-            )
-            res.work2home.reqID = list(
-                range(2, len(res.home2work.distanceAVG) * 2 + 3, 2)
-            )
+            res.A2B.reqID = list(range(1, len(res.A2B.distanceAVG) * 2 + 2, 2))
+            res.B2A.reqID = list(range(2, len(res.A2B.distanceAVG) * 2 + 3, 2))
             return res
 
 
 def fetchData(PERSIST_MODE: str, sourcedata: str = "Output") -> ds.TravelStats:
     res = ds.TravelStats()
     if PERSIST_MODE.lower() == "csv":
-        res.loadH2WFromCSV(sourcedata + "_h2w.csv")
-        res.loadW2FFromCSV(sourcedata + "_w2h.csv")
-        res.home2work.reqID = list(range(1, len(res.home2work.distanceAVG) * 2 + 2, 2))
-        res.work2home.reqID = list(range(2, len(res.home2work.distanceAVG) * 2 + 3, 2))
+        res.loadA2BFromCSV(sourcedata + "_A2B.csv")
+        res.loadW2FFromCSV(sourcedata + "_B2A.csv")
+        res.A2B.reqID = list(range(1, len(res.A2B.distanceAVG) * 2 + 2, 2))
+        res.B2A.reqID = list(range(2, len(res.A2B.distanceAVG) * 2 + 3, 2))
     elif PERSIST_MODE.lower() == "db":
-        res.loadH2WFromDB()
-        res.loadW2HFromDB()
+        res.loadA2BFromDB()
+        res.loadB2AFromDB()
     return res
 
 
@@ -109,15 +105,15 @@ def handleResponse(response: requests.Response) -> bool:
         return False
 
 
-def mockh2wResponseAsJson() -> str:
+def mockA2BResponseAsJson() -> str:
     duration_in_traffic = 900 + random.randint(-50, 50)
     duration = 800 + random.randint(-5, 5)
     distance = 5100 + random.randint(-1, 2) * 50
     return buildJson(duration_in_traffic, duration, distance)
 
 
-def mockw2hResponseAsJson() -> str:
-    duration_in_traffic = 950 + random.randint(-50, 50)
+def mockB2AResponseAsJson() -> str:
+    duration_in_traffic = 1000 + random.randint(-50, 50)
     duration = 850 + random.randint(-5, 5)
     distance = 5750 + random.randint(-1, 2) * 50
     return buildJson(duration_in_traffic, duration, distance)
@@ -141,7 +137,7 @@ def buildJson(duration_in_traffic: int, duration: int, distance: int) -> dict:
 
 
 def clearOldExportFiles(sourcedata: str) -> None:
-    if os.path.exists(sourcedata + "_h2w.csv"):
-        os.remove(sourcedata + "_h2w.csv")
-    if os.path.exists(sourcedata + "_w2h.csv"):
-        os.remove(sourcedata + "_w2h.csv")
+    if os.path.exists(sourcedata + "_A2B.csv"):
+        os.remove(sourcedata + "_A2B.csv")
+    if os.path.exists(sourcedata + "_B2A.csv"):
+        os.remove(sourcedata + "_B2A.csv")

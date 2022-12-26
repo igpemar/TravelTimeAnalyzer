@@ -20,33 +20,33 @@ def ETLPipeline(TravelStats: ds.TravelStats, config: config.Config) -> None:
         reqTimestamp = datetime.now()
 
         # Sending Requests
-        reqID_1 = TravelStats.home2work.reqID[-1]
-        reqID_2 = TravelStats.work2home.reqID[-1]
+        reqID_1 = TravelStats.A2B.reqID[-1]
+        reqID_2 = TravelStats.B2A.reqID[-1]
 
         if config.REQ_SEND == 1:
-            # Sending request for HOME2WORK
+            # Sending request for A2B
             logger.logRequestSent(reqID_1)
-            h2wResp = extract.sendRequest(config, reqs.h2wRequest, reqID_1)
+            A2BResp = extract.sendRequest(config, reqs.A2BRequest, reqID_1)
 
-            # Sending request for WORK2HOME
+            # Sending request for B2A
             logger.logRequestSent(reqID_2)
-            w2hResp = extract.sendRequest(config, reqs.w2hRequest, reqID_2)
+            B2AResp = extract.sendRequest(config, reqs.B2ARequest, reqID_2)
 
             # Parsing response
-            h2wRespJSON = h2wResp.json()
-            w2hRespJSON = w2hResp.json()
+            A2BRespJSON = A2BResp.json()
+            B2ARespJSON = B2AResp.json()
 
         else:
             # Parsing response
             logger.logRequestSent(reqID_1)
-            h2wRespJSON = extract.mockh2wResponseAsJson()
+            A2BRespJSON = extract.mockA2BResponseAsJson()
             logger.logRequestSent(reqID_2)
-            w2hRespJSON = extract.mockw2hResponseAsJson()
+            B2ARespJSON = extract.mockB2AResponseAsJson()
 
         # Storing data in memory
 
-        transform.storeRespDataNP(TravelStats.home2work, reqTimestamp, h2wRespJSON)
-        transform.storeRespDataNP(TravelStats.work2home, reqTimestamp, w2hRespJSON)
+        transform.storeRespDataNP(TravelStats.A2B, reqTimestamp, A2BRespJSON)
+        transform.storeRespDataNP(TravelStats.B2A, reqTimestamp, B2ARespJSON)
 
         # Persisting data in disk
         timeSinceLastDataDump = reqTimestamp - lastDataDump

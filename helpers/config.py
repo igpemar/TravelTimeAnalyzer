@@ -14,8 +14,8 @@ PERSIST_MODE = "db"  # choose between CSV and DB
 class Config:
     def __init__(self):
         # Where to
-        self.HOME = self.parseInput("Input Data", "HOME")
-        self.WORK = self.parseInput("Input Data", "WORK")
+        self.A = self.parseInput("Input Data", "FROM")
+        self.B = self.parseInput("Input Data", "TO")
 
         # Request Frequency
         self.HIGH_SAMPLING_FREQUENCY = self.parseInput(
@@ -105,7 +105,7 @@ class Config:
         sys.exit(1)
 
     def validateParam(self, paramName: str, paramValue: str):
-        if paramName in ("WORK", "HOME"):
+        if paramName in ("TO", "FROM"):
             return self.validateCoordinates(paramName, paramValue)
         elif paramName in (
             "REQUEST_INTERVAL_HIGH",
@@ -125,10 +125,10 @@ class Config:
 
     def validateCoordinates(self, location: str, coordinates: str):
         pattern = re.compile("^\((-?\d{0,2}.\d*),\s?(-?\d{0,2}.\d*)\)$")
-        a = re.findall(pattern, coordinates)
-        if a:
-            if len(a[0]) == 2:
-                return (float(a[0][0]), float(a[0][1]))
+        matches = re.findall(pattern, coordinates)
+        if matches:
+            if len(matches[0]) == 2:
+                return (float(matches[0][0]), float(matches[0][1]))
         logger.log(
             f"wrong input {location}, must be in (DD.DDDDDD, DD.DDDDDD) format, exiting."
         )
@@ -139,7 +139,7 @@ class Config:
             return datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
         except ValueError:
             logger.log(
-                f"wrong input {start_time}, must be in a valid YYYY-MM-DD HH:MM:SS format, exiting."
+                f"wrong input {start_time}, must be in valid YYYY-MM-DD HH:MM:SS format, exiting."
             )
             sys.exit(1)
 
@@ -150,13 +150,13 @@ class Config:
             elif bool.upper() == "FALSE":
                 return False
         else:
-            logger.log(f"wrong input {paramName}, must be a boolean, exiting.")
+            logger.log(f"wrong input {paramName}, must be boolean, exiting.")
             sys.exit(1)
 
     def validateIntervals(self, paramName: str, paramValue: str):
         if paramValue.isdigit():
             if int(paramValue) < 1:
-                logger.log(f"{paramName}, must be a >= 1")
+                logger.log(f"{paramName}, must be >= 1")
             else:
                 return int(paramValue)
         else:

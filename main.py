@@ -13,7 +13,7 @@ if __name__ == "__main__":
     Config = config.Config()
 
     # Print intro message
-    logger.logIntroMessage(Config.HOME, Config.WORK)
+    logger.logIntroMessage(Config.A, Config.B)
 
     # Setting up database environment
     if config.PERSIST_MODE.upper() == "DB":

@@ -4,7 +4,7 @@ import helpers.logger as logger
 
 createTableCommands = (
     """
-        CREATE TABLE IF NOT EXISTS h2w (
+        CREATE TABLE IF NOT EXISTS A2B (
             reqID INTEGER PRIMARY KEY,
             timestampSTR VARCHAR NOT NULL,
             distanceAVG FLOAT NOT NULL,
@@ -13,7 +13,7 @@ createTableCommands = (
         );
         """,
     """
-        CREATE TABLE IF NOT EXISTS w2h (
+        CREATE TABLE IF NOT EXISTS B2A (
             reqID INTEGER PRIMARY KEY,
             timestampSTR VARCHAR NOT NULL,
             distanceAVG FLOAT NOT NULL,
@@ -93,7 +93,7 @@ def persistRow(conn: psycopg2.connect, tableName: str, row):
 
     insertCommand = f"""
         INSERT INTO {tableName}
-        VALUES({row[0]},'{row[1]}','{row[2]}','{row[3]}','{row[4]}')
+        VALUES({row[0]},'{row[1]}',{row[2]},{row[3]},{row[4]})
         ON CONFLICT DO NOTHING;
         """
     cursor.execute(insertCommand)
@@ -103,12 +103,12 @@ def persistRow(conn: psycopg2.connect, tableName: str, row):
 def flushdbs(conn: psycopg2.connect):
     cursor = conn.cursor()
     flushCommand = f"""
-        DELETE FROM h2w
+        DELETE FROM A2B
         where reqid is not null;
         """
     cursor.execute(flushCommand)
     flushCommand = f"""
-        DELETE FROM w2h
+        DELETE FROM B2A
         where reqid is not null;
         """
     cursor.execute(flushCommand)
