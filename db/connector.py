@@ -6,7 +6,7 @@ createTableCommands = (
     """
         CREATE TABLE IF NOT EXISTS h2w (
             reqID INTEGER PRIMARY KEY,
-            timestampSTR TIMESTAMP NOT NULL,
+            timestampSTR VARCHAR NOT NULL,
             distanceAVG FLOAT NOT NULL,
             durationInclTraffic FLOAT NOT NULL,
             durationExclTraffic FLOAT NOT NULL
@@ -15,7 +15,7 @@ createTableCommands = (
     """
         CREATE TABLE IF NOT EXISTS w2h (
             reqID INTEGER PRIMARY KEY,
-            timestampSTR TIMESTAMP NOT NULL,
+            timestampSTR VARCHAR NOT NULL,
             distanceAVG FLOAT NOT NULL,
             durationInclTraffic FLOAT NOT NULL,
             durationExclTraffic FLOAT NOT NULL
@@ -78,7 +78,7 @@ def setDatabases():
 
 def getAll(conn: psycopg2.connect, tableName: str):
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM " + tableName)
+    cursor.execute("SELECT * FROM " + tableName.lower())
     conn.commit()
 
     rows = cursor.fetchall()
