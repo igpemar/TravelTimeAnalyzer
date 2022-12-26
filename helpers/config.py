@@ -8,7 +8,7 @@ from datetime import timedelta as timedelta
 
 REQ_SEND = 0
 DATA_VALIDATION = False
-PERSIST_MODE = "db"  # choose between CSV and DB
+PERSIST_MODE = "csv"  # choose between CSV and DB
 
 
 class Config:
@@ -35,6 +35,9 @@ class Config:
 
         # Delayed start
         self.START_TIME = self.parseInput("Optional", "START_TIME")
+
+        # Programmed end
+        self.END_TIME = self.parseInput("Optional", "END_TIME")
 
         # Request retry frequency
         self.RETRY_INTERVAL = 1  # seconds
@@ -91,7 +94,7 @@ class Config:
                 )
             else:
                 if parsedParam == "":
-                    if param == "START_TIME":
+                    if param in ("START_TIME", "END_TIME"):
                         return self.defaultValue(param)
                     else:
                         logger.log(
@@ -117,8 +120,8 @@ class Config:
                 return self.validateIntervals(paramName, paramValue)
             else:
                 return float(paramValue)
-        elif paramName == "START_TIME":
-            return self.validateStartTime(self, paramName)
+        elif paramName in ("START_TIME", "END_TIME"):
+            return self.validateTimes(paramValue)
         elif paramName == "POST_PROCESSING":
             return self.validateBoolean(paramName, paramValue)
         sys.exit(1)
@@ -134,12 +137,12 @@ class Config:
         )
         sys.exit(1)
 
-    def validateStartTime(self, start_time: str):
+    def validateTimes(self, time: str):
         try:
-            return datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
+            return datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
         except ValueError:
             logger.log(
-                f"wrong input {start_time}, must be in valid YYYY-MM-DD HH:MM:SS format, exiting."
+                f"wrong input {time}, must be in valid YYYY-MM-DD HH:MM:SS format, exiting."
             )
             sys.exit(1)
 
@@ -167,6 +170,8 @@ class Config:
         if param == "START_TIME":
             logger.log(f"Empty {param}, defaulting to now.")
             return datetime.now()
+        elif param == "END_TIME":
+            return ""
 
     def incRetryCounter(
         self,

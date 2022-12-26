@@ -9,6 +9,12 @@ def isItTimeToStart(start_time: datetime) -> bool:
     return start_time - datetime.now() > timedelta(seconds=1)
 
 
+def isItTimeToEnd(end_time: datetime) -> bool:
+    if end_time == "":
+        return False
+    return end_time - datetime.now() < timedelta(seconds=1)
+
+
 def isItTimeToDumpData(timeSinceLastDataDump: datetime, config: config.Config) -> bool:
     return timeSinceLastDataDump >= timedelta(
         seconds=config.DATA_DUMP_INTERVAL, microseconds=10

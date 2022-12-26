@@ -1,4 +1,5 @@
 import os
+import sys
 import psutil
 import ETL.load as load
 import ETL.extract as extract
@@ -61,6 +62,9 @@ def ETLPipeline(TravelStats: ds.TravelStats, config: config.Config) -> None:
         # Incrementing request numbers
         TravelStats.incrementRequestIDs(2)
         monitor_total_ram_usage_current_process()
+        if timemngmt.isItTimeToEnd(config.END_TIME):
+            logger.log("End time reached, exiting.")
+            sys.exit(0)
         timemngmt.waitForNextCycle(reqTimestamp, config)
 
 

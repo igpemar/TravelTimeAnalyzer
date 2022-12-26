@@ -15,7 +15,7 @@ def saveTravelStats2txt(TravelStats: ds.TravelStats, dest: str = "Output") -> No
     B2AData = transform.travelTimeColumnStack(TravelStats.B2A)
     logger.log("--> Dumping response data to output file...")
 
-    start_time = time.time()
+    start = time.time()
     file_A2B = dest + "_A2B.csv"
     file_B2A = dest + "_B2A.csv"
     t1 = threading.Thread(target=writeDataToCsv, args=(file_A2B, A2BData))
@@ -24,7 +24,7 @@ def saveTravelStats2txt(TravelStats: ds.TravelStats, dest: str = "Output") -> No
     t2.start()
     t1.join()
     t2.join()
-    elapsed = time.time() - start_time
+    elapsed = time.time() - start
 
     logger.log(f"---> Done Writing! {round(elapsed*1000,2)} ms")
     logger.log("------------------------------------------------")
