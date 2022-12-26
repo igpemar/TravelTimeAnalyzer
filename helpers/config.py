@@ -8,7 +8,7 @@ from datetime import timedelta as timedelta
 
 REQ_SEND = 0
 DATA_VALIDATION = False
-PERSIST_MODE = "csv"  # choose between CSV and DB
+PERSIST_MODE = "db"  # choose between CSV and DB
 
 
 class Config:
