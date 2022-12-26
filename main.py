@@ -7,7 +7,8 @@ import helpers.timeutils as timemngmt
 import db.connector as db
 
 REQ_SEND = 0
-RESTART_INPUT = "Y"
+RESTART_INPUT = "N"
+PERSIST_MODE = "db"  # choose between CSV and DB
 
 if __name__ == "__main__":
     # Get configuration variables
@@ -17,11 +18,12 @@ if __name__ == "__main__":
     logger.logIntroMessage(Config.HOME, Config.WORK)
 
     # Setting up database environment
-    db.setDatabases()
+    if PERSIST_MODE.upper() == "DB":
+        db.setDatabases()
 
     # Checking for restart
     logger.log("Checking for restart...")
-    TravelStats = extract.restartCheck(RESTART_INPUT)
+    TravelStats = extract.restartCheck(RESTART_INPUT, PERSIST_MODE)
 
     # Checking for start time
     timemngmt.waitForStartTime(Config)
