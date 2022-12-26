@@ -73,7 +73,7 @@ def setDatabases():
     dbConfig = getDBConfig()
     conn = connect2DB(dbConfig)
     createDBTables(conn, dbConfig)
-    closedbconnection(conn)
+    closeDBconnection(conn)
 
 
 def getAll(conn: psycopg2.connect, tableName: str):
@@ -113,8 +113,9 @@ def flushdbs(conn: psycopg2.connect):
         """
     cursor.execute(flushCommand)
     conn.commit()
+    closeDBconnection(conn)
 
 
-def closedbconnection(conn: psycopg2.connect):
+def closeDBconnection(conn: psycopg2.connect):
     conn.close()
     logger.log("Database connection closed")

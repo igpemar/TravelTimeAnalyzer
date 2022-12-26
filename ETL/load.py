@@ -53,7 +53,7 @@ def saveTravelStats2DB(TravelStats: ds.TravelStats) -> None:
             data.durationEnclTraffic[i],
         ]
         db.persistRow(conn, "w2h", row)
-    db.closedbconnection(conn)
+    db.closeDBconnection(conn)
 
 
 def writeDataToCsv(fileName: str, h2wData: np.ndarray) -> None:

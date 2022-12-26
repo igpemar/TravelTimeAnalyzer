@@ -125,7 +125,7 @@ class TravelTime:
         dbConfig = db.getDBConfig()
         conn = db.connect2DB(dbConfig)
         data = db.getAll(conn, tableName)
-        db.closedbconnection(conn)
+        db.closeDBconnection(conn)
         self.parseData(data)
 
     def setTimeStamps(self, timestamp: datetime):
