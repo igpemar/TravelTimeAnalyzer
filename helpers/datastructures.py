@@ -2,6 +2,7 @@ import csv
 import helpers.logger as logger
 import helpers.config as config
 from datetime import datetime as datetime
+import db.connector as db
 
 
 class TravelStats:
@@ -15,6 +16,12 @@ class TravelStats:
 
     def loadW2FFromCSV(self, filename: str = "Output"):
         self.work2home.loadOutputFromCSV(filename)
+
+    def loadH2WFromDB(self):
+        self.home2work.loadOutputFromDB("H2W")
+
+    def loadW2HFromDB(self):
+        self.work2home.loadOutputFromDB("W2H")
 
     def getH2W(
         self,
@@ -100,17 +107,26 @@ class TravelTime:
                 f"Error reading from {filename}, impossible to restart from existing data"
             )
             return
+        self.parseData(data)
 
-        for i in range(len(data)):
-            self.reqID.append(float(data[i][0]))
-            self.timestampSTR.append(data[i][1].strip())
+    def parseData(self, data: list):
+        for _, value in enumerate(data):
+            self.reqID.append(float(value[0]))
+            self.timestampSTR.append(value[1].strip())
             self.timestampDT.append(
-                datetime.strptime(data[i][1].strip(), "%Y-%m-%d %H:%M:%S")
+                datetime.strptime(value[1].strip(), "%Y-%m-%d %H:%M:%S")
             )
-            self.distanceAVG.append(float(data[i][2]))
-            self.durationInclTraffic.append(float(data[i][3]))
-            self.durationEnclTraffic.append(float(data[i][4]))
+            self.distanceAVG.append(float(value[2]))
+            self.durationInclTraffic.append(float(value[3]))
+            self.durationEnclTraffic.append(float(value[4]))
             self.isFirstWriteCycle = False
+
+    def loadOutputFromDB(self, tableName: str):
+        dbConfig = db.getDBConfig()
+        conn = db.connect2DB(dbConfig)
+        data = db.getAll(conn, tableName)
+        self.parseData(data)
+        pass
 
     def setTimeStamps(self, timestamp: datetime):
         self.timestampDT.append(timestamp)

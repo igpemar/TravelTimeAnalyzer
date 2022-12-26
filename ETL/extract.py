@@ -9,7 +9,9 @@ import helpers.datastructures as ds
 from datetime import datetime as datetime
 
 
-def restartCheck(FORCED_INPUT: str = "", sourcedata: str = "Output") -> ds.TravelStats:
+def restartCheck(
+    FORCED_INPUT: str = "", persist: str = "CSV", sourcedata: str = "Output"
+) -> ds.TravelStats:
     while True:
         if FORCED_INPUT != "":
             s = FORCED_INPUT
@@ -19,14 +21,23 @@ def restartCheck(FORCED_INPUT: str = "", sourcedata: str = "Output") -> ds.Trave
             )
         res = ds.TravelStats()
         if s == "A" or s == "A":
+            logger.log("Abort")
             sys.exit(0)
         elif s == "y" or s == "Y":
-            clearOldExportFiles(sourcedata)
+            if persist.upper() == "CSV":
+                clearOldExportFiles(sourcedata)
             res.initiateRequestIDs()
             return res
         elif s == "n" or s == "N":
-            res.loadH2WFromCSV(sourcedata + "_h2w.csv")
-            res.loadW2FFromCSV(sourcedata + "_w2h.csv")
+            if persist.upper() == "CSV":
+                res.loadH2WFromCSV(sourcedata + "_h2w.csv")
+                res.loadW2FFromCSV(sourcedata + "_w2h.csv")
+            elif persist.upper() == "DB":
+                res.loadH2WFromDB()
+                res.loadW2HFromDB()
+            else:
+                logger.log(f"Wrong persist mode: {persist}, must be 'csv' or 'db'")
+
             res.home2work.reqID = list(
                 range(1, len(res.home2work.distanceAVG) * 2 + 2, 2)
             )
