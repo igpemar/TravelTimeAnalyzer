@@ -6,11 +6,13 @@ import helpers.logger as logger
 from datetime import datetime as datetime
 from datetime import timedelta as timedelta
 
+REQ_SEND = 0
 DATA_VALIDATION = False
+PERSIST_MODE = "db"  # choose between CSV and DB
 
 
 class Config:
-    def __init__(self, REQ_SEND: bool):
+    def __init__(self):
         # Where to
         self.HOME = self.parseInput("Input Data", "HOME")
         self.WORK = self.parseInput("Input Data", "WORK")
@@ -39,6 +41,9 @@ class Config:
         self.RETRY_COUNTER = 1
         self.RETRY_MAX_TRIES = 5
         self.REQ_SEND = REQ_SEND
+
+        # Persist mode
+        self.PERSIST_MODE = PERSIST_MODE
 
     def initiateAPIkey(
         self,

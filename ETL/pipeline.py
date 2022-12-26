@@ -44,13 +44,17 @@ def ETLPipeline(TravelStats: ds.TravelStats, config: config.Config) -> None:
             w2hRespJSON = extract.mockw2hResponseAsJson()
 
         # Storing data in memory
+
         transform.storeRespDataNP(TravelStats.home2work, reqTimestamp, h2wRespJSON)
         transform.storeRespDataNP(TravelStats.work2home, reqTimestamp, w2hRespJSON)
 
         # Persisting data in disk
         timeSinceLastDataDump = reqTimestamp - lastDataDump
         if reqID_1 == 1 or timemngmt.isItTimeToDumpData(timeSinceLastDataDump, config):
-            load.saveTravelStats2txt(TravelStats)
+            if config.PERSIST_MODE.lower() == "csv":
+                load.saveTravelStats2txt(TravelStats)
+            elif config.PERSIST_MODE.lower() == "db":
+                load.saveTravelStats2DB(TravelStats)
             lastDataDump = datetime.now()
             TravelStats.flushStats()
 

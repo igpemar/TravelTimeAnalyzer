@@ -88,6 +88,33 @@ def getAll(conn: psycopg2.connect, tableName: str):
     return rows
 
 
+def persistRow(conn: psycopg2.connect, tableName: str, row):
+    cursor = conn.cursor()
+
+    insertCommand = f"""
+        INSERT INTO {tableName}
+        VALUES({row[0]},'{row[1]}','{row[2]}','{row[3]}','{row[4]}')
+        ON CONFLICT DO NOTHING;
+        """
+    cursor.execute(insertCommand)
+    conn.commit()
+
+
+def flushdbs(conn: psycopg2.connect):
+    cursor = conn.cursor()
+    flushCommand = f"""
+        DELETE FROM h2w
+        where reqid is not null;
+        """
+    cursor.execute(flushCommand)
+    flushCommand = f"""
+        DELETE FROM w2h
+        where reqid is not null;
+        """
+    cursor.execute(flushCommand)
+    conn.commit()
+
+
 def closedbconnection(conn: psycopg2.connect):
     conn.close()
     logger.log("Database connection closed")

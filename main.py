@@ -1,29 +1,27 @@
 import threading
+import db.connector as db
 import ETL.extract as extract
 import ETL.pipeline as pipeline
 import helpers.config as config
 import helpers.logger as logger
 import helpers.timeutils as timemngmt
-import db.connector as db
 
-REQ_SEND = 0
-RESTART_INPUT = "N"
-PERSIST_MODE = "db"  # choose between CSV and DB
+RESTART_INPUT = "Y"
 
 if __name__ == "__main__":
     # Get configuration variables
-    Config = config.Config(REQ_SEND)
+    Config = config.Config()
 
     # Print intro message
     logger.logIntroMessage(Config.HOME, Config.WORK)
 
     # Setting up database environment
-    if PERSIST_MODE.upper() == "DB":
+    if config.PERSIST_MODE.upper() == "DB":
         db.setDatabases()
 
     # Checking for restart
     logger.log("Checking for restart...")
-    TravelStats = extract.restartCheck(RESTART_INPUT, PERSIST_MODE)
+    TravelStats = extract.restartCheck(RESTART_INPUT, config.PERSIST_MODE)
 
     # Checking for start time
     timemngmt.waitForStartTime(Config)
@@ -38,5 +36,5 @@ if __name__ == "__main__":
 
         t2 = threading.Thread(
             target=postProcess,
-            args=("Output.jpg", Config.POST_PROCESSING_INTERVAL),
+            args=(Config, "Output.jpg"),
         ).start()

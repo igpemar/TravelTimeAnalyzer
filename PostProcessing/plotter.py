@@ -5,6 +5,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import ETL.extract as extract
 import helpers.datastructures as ds
+import helpers.config as config
 from datetime import datetime as datetime
 from datetime import timedelta as timedelta
 
@@ -13,12 +14,13 @@ axis_mode = "Running"  # Choose between "Running", "FullWeek" and "FullDay"
 Vector = list[float]
 
 
-def postProcess(SAVE_LOCATION: str = "Plot.jgp", sampling: int = 0) -> None:
+def postProcess(config: config.Config, SAVE_LOCATION: str = "Plot.jgp") -> None:
+    sampling = config.POST_PROCESSING_INTERVAL
     if not checkAxisMode(axis_mode):
         raise Exception("wrong axis_mode")
     while True:
         # Reading the data
-        TravelStats = extract.fetchData("Output")
+        TravelStats = extract.fetchData(config.PERSIST_MODE, "Output")
         if TravelStats.home2work.isFirstWriteCycle:
             continue
 

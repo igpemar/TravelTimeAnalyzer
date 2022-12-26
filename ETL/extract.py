@@ -3,6 +3,7 @@ import sys
 import time
 import random
 import requests
+import db.connector as db
 import helpers.config as config
 import helpers.logger as logger
 import helpers.datastructures as ds
@@ -26,6 +27,8 @@ def restartCheck(
         elif s == "y" or s == "Y":
             if persist.upper() == "CSV":
                 clearOldExportFiles(sourcedata)
+            elif persist.upper() == "DB":
+                db.flushdbs(db.connect2DB(db.getDBConfig()))
             res.initiateRequestIDs()
             return res
         elif s == "n" or s == "N":
@@ -47,12 +50,16 @@ def restartCheck(
             return res
 
 
-def fetchData(sourcedata: str = "Output") -> ds.TravelStats:
+def fetchData(PERSIST_MODE: str, sourcedata: str = "Output") -> ds.TravelStats:
     res = ds.TravelStats()
-    res.loadH2WFromCSV(sourcedata + "_h2w.csv")
-    res.loadW2FFromCSV(sourcedata + "_w2h.csv")
-    res.home2work.reqID = list(range(1, len(res.home2work.distanceAVG) * 2 + 2, 2))
-    res.work2home.reqID = list(range(2, len(res.home2work.distanceAVG) * 2 + 3, 2))
+    if PERSIST_MODE.lower() == "csv":
+        res.loadH2WFromCSV(sourcedata + "_h2w.csv")
+        res.loadW2FFromCSV(sourcedata + "_w2h.csv")
+        res.home2work.reqID = list(range(1, len(res.home2work.distanceAVG) * 2 + 2, 2))
+        res.work2home.reqID = list(range(2, len(res.home2work.distanceAVG) * 2 + 3, 2))
+    elif PERSIST_MODE.lower() == "db":
+        res.loadH2WFromDB()
+        res.loadW2HFromDB()
     return res
 
 

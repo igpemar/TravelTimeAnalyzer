@@ -2,6 +2,7 @@ import os
 import time
 import threading
 import numpy as np
+import db.connector as db
 from os.path import exists
 from filelock import FileLock
 import helpers.logger as logger
@@ -27,6 +28,32 @@ def saveTravelStats2txt(TravelStats: ds.TravelStats, dest: str = "Output") -> No
 
     logger.log(f"---> Done Writing! {round(elapsed*1000,2)} ms")
     logger.log("----------------------------------------------")
+
+
+def saveTravelStats2DB(TravelStats: ds.TravelStats) -> None:
+    dbConfig = db.getDBConfig()
+    conn = db.connect2DB(dbConfig)
+    data = TravelStats.home2work
+    for i, _ in enumerate(data.reqID):
+        row = [
+            data.reqID[i],
+            data.timestampSTR[i],
+            data.distanceAVG[i],
+            data.durationInclTraffic[i],
+            data.durationEnclTraffic[i],
+        ]
+        db.persistRow(conn, "h2w", row)
+    data = TravelStats.work2home
+    for i, _ in enumerate(data.reqID):
+        row = [
+            data.reqID[i],
+            data.timestampSTR[i],
+            data.distanceAVG[i],
+            data.durationInclTraffic[i],
+            data.durationEnclTraffic[i],
+        ]
+        db.persistRow(conn, "w2h", row)
+    db.closedbconnection(conn)
 
 
 def writeDataToCsv(fileName: str, h2wData: np.ndarray) -> None:
