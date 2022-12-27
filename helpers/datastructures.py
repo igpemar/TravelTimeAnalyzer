@@ -14,7 +14,7 @@ class TravelStats:
     def loadA2BFromCSV(self, filename: str = "Output"):
         self.A2B.loadOutputFromCSV(filename)
 
-    def loadW2FFromCSV(self, filename: str = "Output"):
+    def loadB2AFromCSV(self, filename: str = "Output"):
         self.B2A.loadOutputFromCSV(filename)
 
     def loadA2BFromDB(self):
