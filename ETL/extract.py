@@ -78,7 +78,7 @@ def sendRequest(
                 continue
             else:
                 logger.log(f"Max number of tries reached for Request {reqID}, exiting")
-                sys.exit(1)
+                sys.exit(0)
 
     config.resetRetryCounter()
     ok = handleResponse(resp)
@@ -90,7 +90,7 @@ def sendRequest(
             continue
         else:
             logger.log(f"Max number of tries reached for Request {reqID}, exiting")
-            sys.exit(1)
+            sys.exit(0)
 
     return resp
 
