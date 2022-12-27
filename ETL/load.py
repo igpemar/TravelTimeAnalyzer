@@ -12,7 +12,7 @@ import helpers.datastructures as ds
 
 
 def saveTravelStats2txt(
-    TravelStats: ds.TravelStats, config: config.Config, dest: str = "Output"
+    config: config.Config, TravelStats: ds.TravelStats, dest: str = "Output"
 ) -> None:
     A2BData = transform.travelTimeColumnStack(TravelStats.A2B)
     if config.RETURNMODE:
