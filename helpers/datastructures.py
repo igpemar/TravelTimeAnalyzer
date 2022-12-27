@@ -33,10 +33,14 @@ class TravelStats:
     ):
         return self.B2A
 
-    def flushStats(
+    def flushA2BStats(
         self,
     ):
         self.A2B.flushStats()
+
+    def flushB2AStats(
+        self,
+    ):
         self.B2A.flushStats()
 
     def initiateRequestIDs(self):
@@ -111,7 +115,7 @@ class TravelTime:
 
     def parseData(self, data: list):
         for _, value in enumerate(data):
-            self.reqID.append(float(value[0]))
+            self.reqID.append(int(value[0]))
             self.timestampSTR.append(value[1].strip())
             self.timestampDT.append(
                 datetime.strptime(value[1].strip(), "%Y-%m-%d %H:%M:%S")

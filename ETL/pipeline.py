@@ -62,10 +62,14 @@ def ETLPipeline(TravelStats: ds.TravelStats, config: config.Config) -> None:
             elif config.PERSIST_MODE.lower() == "db":
                 load.saveTravelStats2DB(config, TravelStats)
             lastDataDump = datetime.now()
-            TravelStats.flushStats()
+            TravelStats.flushA2BStats()
+            TravelStats.flushB2AStats()
 
         # Incrementing request numbers
-        TravelStats.incrementRequestIDs(2)
+        if config.RETURNMODE:
+            TravelStats.incrementRequestIDs(2)
+        else:
+            TravelStats.incrementRequestIDs(1)
         monitor_total_ram_usage_current_process()
         if timemngmt.isItTimeToEnd(config.END_TIME):
             logger.log("End time reached, exiting.")

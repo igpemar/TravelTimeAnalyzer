@@ -34,8 +34,13 @@ def restartCheck(
         elif s == "n" or s == "N":
             if config.PERSIST_MODE.upper() == "CSV":
                 res.loadA2BFromCSV(sourcedata + "_A2B.csv")
+                res.flushA2BStats()
                 if config.RETURNMODE:
                     res.loadB2AFromCSV(sourcedata + "_B2A.csv")
+                    res.flushB2AStats()
+                    res.incrementRequestIDs(2)
+                else:
+                    res.incrementRequestIDs(1)
             elif config.PERSIST_MODE.upper() == "DB":
                 res.loadA2BFromDB()
                 if config.RETURNMODE:
@@ -45,9 +50,7 @@ def restartCheck(
                     f"Wrong persist mode: {config.PERSIST_MODE}, must be 'csv' or 'db'"
                 )
 
-            res.A2B.reqID = list(range(1, len(res.A2B.distanceAVG) * 2 + 2, 2))
-            if config.RETURNMODE:
-                res.B2A.reqID = list(range(2, len(res.B2A.distanceAVG) * 2 + 3, 2))
+            # res = genReQIDs(config, res)
             return res
 
 
@@ -55,14 +58,22 @@ def fetchData(config: config.Config, sourcedata: str = "Output") -> ds.TravelSta
     res = ds.TravelStats()
     if config.PERSIST_MODE.lower() == "csv":
         res.loadA2BFromCSV(sourcedata + "_A2B.csv")
-        res.A2B.reqID = list(range(1, len(res.A2B.distanceAVG) * 2 + 2, 2))
         if config.RETURNMODE:
             res.loadB2AFromCSV(sourcedata + "_B2A.csv")
-            res.B2A.reqID = list(range(2, len(res.A2B.distanceAVG) * 2 + 3, 2))
+        # res = genReQIDs(config, res)
     elif config.PERSIST_MODE.lower() == "db":
         res.loadA2BFromDB()
         if config.RETURNMODE:
             res.loadB2AFromDB()
+    return res
+
+
+def genReQIDs(config: config.Config, res):
+    if config.RETURNMODE:
+        res.A2B.reqID = list(range(1, len(res.A2B.distanceAVG) * 2 + 2, 2))
+        res.B2A.reqID = list(range(2, len(res.B2A.distanceAVG) * 2 + 3, 2))
+    else:
+        res.A2B.reqID = list(range(1, len(res.A2B.distanceAVG) + 1))
     return res
 
 
