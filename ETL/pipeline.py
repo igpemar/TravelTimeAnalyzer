@@ -1,4 +1,5 @@
 import os
+import sys
 import psutil
 import ETL.load as load
 import ETL.extract as extract
@@ -20,43 +21,59 @@ def ETLPipeline(TravelStats: ds.TravelStats, config: config.Config) -> None:
         reqTimestamp = datetime.now()
 
         # Sending Requests
-        reqID_1 = TravelStats.home2work.reqID[-1]
-        reqID_2 = TravelStats.work2home.reqID[-1]
+        reqID_1 = TravelStats.A2B.reqID[-1]
+        if config.RETURNMODE:
+            reqID_2 = TravelStats.B2A.reqID[-1]
 
         if config.REQ_SEND == 1:
-            # Sending request for HOME2WORK
+            # Sending request for A2B
             logger.logRequestSent(reqID_1)
-            h2wResp = extract.sendRequest(config, reqs.h2wRequest, reqID_1)
+            A2BResp = extract.sendRequest(config, reqs.A2BRequest, reqID_1)
 
-            # Sending request for WORK2HOME
-            logger.logRequestSent(reqID_2)
-            w2hResp = extract.sendRequest(config, reqs.w2hRequest, reqID_2)
+            if config.RETURNMODE:
+                # Sending request for B2A
+                logger.logRequestSent(reqID_2)
+                B2AResp = extract.sendRequest(config, reqs.B2ARequest, reqID_2)
 
             # Parsing response
-            h2wRespJSON = h2wResp.json()
-            w2hRespJSON = w2hResp.json()
+            A2BRespJSON = A2BResp.json()
+            if config.RETURNMODE:
+                B2ARespJSON = B2AResp.json()
 
         else:
             # Parsing response
             logger.logRequestSent(reqID_1)
-            h2wRespJSON = extract.mockh2wResponseAsJson()
-            logger.logRequestSent(reqID_2)
-            w2hRespJSON = extract.mockw2hResponseAsJson()
+            A2BRespJSON = extract.mockA2BResponseAsJson()
+            if config.RETURNMODE:
+                logger.logRequestSent(reqID_2)
+                B2ARespJSON = extract.mockB2AResponseAsJson()
 
         # Storing data in memory
-        transform.storeRespDataNP(TravelStats.home2work, reqTimestamp, h2wRespJSON)
-        transform.storeRespDataNP(TravelStats.work2home, reqTimestamp, w2hRespJSON)
+
+        transform.storeRespDataNP(TravelStats.A2B, reqTimestamp, A2BRespJSON)
+        if config.RETURNMODE:
+            transform.storeRespDataNP(TravelStats.B2A, reqTimestamp, B2ARespJSON)
 
         # Persisting data in disk
         timeSinceLastDataDump = reqTimestamp - lastDataDump
         if reqID_1 == 1 or timemngmt.isItTimeToDumpData(timeSinceLastDataDump, config):
-            load.saveTravelStats2txt(TravelStats)
+            if config.PERSIST_MODE.lower() == "csv":
+                load.saveTravelStats2txt(config, TravelStats)
+            elif config.PERSIST_MODE.lower() == "db":
+                load.saveTravelStats2DB(config, TravelStats)
             lastDataDump = datetime.now()
-            TravelStats.flushStats()
+            TravelStats.flushA2BStats()
+            TravelStats.flushB2AStats()
 
         # Incrementing request numbers
-        TravelStats.incrementRequestIDs(2)
+        if config.RETURNMODE:
+            TravelStats.incrementRequestIDs(2)
+        else:
+            TravelStats.incrementRequestIDs(1)
         monitor_total_ram_usage_current_process()
+        if timemngmt.isItTimeToEnd(config.END_TIME):
+            logger.log("End time reached, exiting.")
+            sys.exit(0)
         timemngmt.waitForNextCycle(reqTimestamp, config)
 
 

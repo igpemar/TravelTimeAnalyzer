@@ -5,6 +5,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import ETL.extract as extract
 import helpers.datastructures as ds
+import helpers.config as config
 from datetime import datetime as datetime
 from datetime import timedelta as timedelta
 
@@ -13,13 +14,14 @@ axis_mode = "Running"  # Choose between "Running", "FullWeek" and "FullDay"
 Vector = list[float]
 
 
-def postProcess(SAVE_LOCATION: str = "Plot.jgp", sampling: int = 0) -> None:
+def postProcess(config: config.Config, SAVE_LOCATION: str = "Plot.jgp") -> None:
+    sampling = config.POST_PROCESSING_INTERVAL
     if not checkAxisMode(axis_mode):
         raise Exception("wrong axis_mode")
     while True:
         # Reading the data
-        TravelStats = extract.fetchData("Output")
-        if TravelStats.home2work.isFirstWriteCycle:
+        TravelStats = extract.fetchData(config, "Output")
+        if TravelStats.A2B.isFirstWriteCycle:
             continue
 
         matplotlib.use("agg")
@@ -43,23 +45,29 @@ def postProcess(SAVE_LOCATION: str = "Plot.jgp", sampling: int = 0) -> None:
 
         # Plotting duration including traffic vs elapsed time in seconds
         X, Y1, Y2 = parseDurationInclTraffic2XYPlot(TravelStats)
-        if not checkForDataCompletion(X, Y1, Y2):
+        if not checkForDataCompletion(config, X, Y1, Y2):
             continue
         ax1.plot(X, Y1, "b.")
-        ax1.plot(X, Y2, "r.")
+        if config.RETURNMODE:
+            ax1.plot(X, Y2, "r.")
+        else:
+            Y2 = [0]
         setYLim(ax1, Y1, Y2)
 
         # Plotting distance vs elapsed time in seconds
         X, Y1, Y2 = parseDistance2XYPlot(TravelStats)
-        if not checkForDataCompletion(X, Y1, Y2):
+        if not checkForDataCompletion(config, X, Y1, Y2):
             continue
         ax2.plot(X, Y1, "b.")
-        ax2.plot(X, Y2, "r.")
+        if config.RETURNMODE:
+            ax2.plot(X, Y2, "r.")
+        else:
+            Y2 = [0]
         setYLim(ax2, Y1, Y2)
 
         # Set xticks and labels
         XTicks = getXTicks(axis_mode)
-        t0 = TravelStats.home2work.timestampDT[0]
+        t0 = TravelStats.A2B.timestampDT[0]
         XTicksLabels = getXLabels(t0, axis_mode)
         if len(XTicks) > 0:
             ax1.set_xticks(XTicks, labels=XTicksLabels, rotation=45)
@@ -67,7 +75,6 @@ def postProcess(SAVE_LOCATION: str = "Plot.jgp", sampling: int = 0) -> None:
 
         ax1.grid()
         ax2.grid()
-        # plt.tight_layout()
 
         plt.savefig(SAVE_LOCATION)
 
@@ -98,48 +105,47 @@ def buildOutputsSourcePaths(SourcePath: str, Filename: str) -> tuple[str, str]:
             SourcePath += "/"
 
     return (
-        SourcePath + Filename + "_" + "_h2w.csv",
-        SourcePath + Filename + "_" + "_w2h.csv",
+        SourcePath + Filename + "_" + "_A2B.csv",
+        SourcePath + Filename + "_" + "_B2A.csv",
     )
 
 
 def createFigure() -> tuple[plt.axes, plt.axes]:
     plt.close("all")
     _, (ax1, ax2) = plt.subplots(1, 2, num=1, figsize=(20, 10))
-    # plt.figure(1, figsize=(15, 5))
     return (ax1, ax2)
 
 
 def parseDurationInclTraffic2XYPlot(
     TravelStats: ds.TravelStats,
 ) -> tuple[Vector, Vector, Vector]:
-    timestamp = TravelStats.home2work.timestampDT
+    timestamp = TravelStats.A2B.timestampDT
     t0 = timestamp[0]
     elapsedTimeSeconds = [(x - t0).total_seconds() for x in timestamp]
-    Y1 = TravelStats.home2work.durationInclTraffic
-    Y2 = TravelStats.work2home.durationInclTraffic
+    Y1 = TravelStats.A2B.durationInclTraffic
+    Y2 = TravelStats.B2A.durationInclTraffic
     return elapsedTimeSeconds, Y1, Y2
 
 
 def parseDurationExclTraffic2XYPlot(
     TravelStats: ds.TravelStats,
 ) -> tuple[Vector, Vector, Vector]:
-    timestamp = TravelStats.home2work.timestampDT
+    timestamp = TravelStats.A2B.timestampDT
     t0 = timestamp[0]
     elapsedTimeSeconds = [(x - t0).total_seconds() for x in timestamp]
-    Y1 = TravelStats.home2work.durationEnclTraffic
-    Y2 = TravelStats.work2home.durationEnclTraffic
+    Y1 = TravelStats.A2B.durationEnclTraffic
+    Y2 = TravelStats.B2A.durationEnclTraffic
     return elapsedTimeSeconds, Y1, Y2
 
 
 def parseDistance2XYPlot(
     TravelStats: ds.TravelStats,
 ) -> tuple[Vector, Vector, Vector]:
-    timestamp = TravelStats.home2work.timestampDT
+    timestamp = TravelStats.A2B.timestampDT
     t0 = timestamp[0]
     elapsedTimeSeconds = [(x - t0).total_seconds() for x in timestamp]
-    Y1 = TravelStats.home2work.distanceAVG
-    Y2 = TravelStats.work2home.distanceAVG
+    Y1 = TravelStats.A2B.distanceAVG
+    Y2 = TravelStats.B2A.distanceAVG
     return elapsedTimeSeconds, Y1, Y2
 
 
@@ -182,5 +188,7 @@ def checkAxisMode(axis_mode: str) -> bool:
         return False
 
 
-def checkForDataCompletion(X: list, Y1: list, Y2: list) -> bool:
-    return len(X) == len(Y1) and len(X) == len(Y2)
+def checkForDataCompletion(config: config.Config, X: list, Y1: list, Y2: list) -> bool:
+    if config.RETURNMODE:
+        return len(X) == len(Y1) and len(X) == len(Y2)
+    return len(X) == len(Y1)

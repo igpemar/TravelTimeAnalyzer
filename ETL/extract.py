@@ -3,13 +3,16 @@ import sys
 import time
 import random
 import requests
+import db.connector as db
 import helpers.config as config
 import helpers.logger as logger
 import helpers.datastructures as ds
 from datetime import datetime as datetime
 
 
-def restartCheck(FORCED_INPUT: str = "", sourcedata: str = "Output") -> ds.TravelStats:
+def restartCheck(
+    config: config.Config, FORCED_INPUT: str = "", sourcedata: str = "Output"
+) -> ds.TravelStats:
     while True:
         if FORCED_INPUT != "":
             s = FORCED_INPUT
@@ -19,29 +22,58 @@ def restartCheck(FORCED_INPUT: str = "", sourcedata: str = "Output") -> ds.Trave
             )
         res = ds.TravelStats()
         if s == "A" or s == "A":
+            logger.log("Abort")
             sys.exit(0)
         elif s == "y" or s == "Y":
-            clearOldExportFiles(sourcedata)
+            if config.PERSIST_MODE.upper() == "CSV":
+                clearOldExportFiles(sourcedata)
+            elif config.PERSIST_MODE.upper() == "DB":
+                db.flushdbs(db.connect2DB(db.getDBConfig()))
             res.initiateRequestIDs()
             return res
         elif s == "n" or s == "N":
-            res.loadH2WFromCSV(sourcedata + "_h2w.csv")
-            res.loadW2FFromCSV(sourcedata + "_w2h.csv")
-            res.home2work.reqID = list(
-                range(1, len(res.home2work.distanceAVG) * 2 + 2, 2)
-            )
-            res.work2home.reqID = list(
-                range(2, len(res.home2work.distanceAVG) * 2 + 3, 2)
-            )
+            if config.PERSIST_MODE.upper() == "CSV":
+                res.loadA2BFromCSV(sourcedata + "_A2B.csv")
+                res.flushA2BStats()
+                if config.RETURNMODE:
+                    res.loadB2AFromCSV(sourcedata + "_B2A.csv")
+                    res.flushB2AStats()
+                    res.incrementRequestIDs(2)
+                else:
+                    res.incrementRequestIDs(1)
+            elif config.PERSIST_MODE.upper() == "DB":
+                res.loadA2BFromDB()
+                if config.RETURNMODE:
+                    res.loadB2AFromDB()
+            else:
+                logger.log(
+                    f"Wrong persist mode: {config.PERSIST_MODE}, must be 'csv' or 'db'"
+                )
+
+            # res = genReQIDs(config, res)
             return res
 
 
-def fetchData(sourcedata: str = "Output") -> ds.TravelStats:
+def fetchData(config: config.Config, sourcedata: str = "Output") -> ds.TravelStats:
     res = ds.TravelStats()
-    res.loadH2WFromCSV(sourcedata + "_h2w.csv")
-    res.loadW2FFromCSV(sourcedata + "_w2h.csv")
-    res.home2work.reqID = list(range(1, len(res.home2work.distanceAVG) * 2 + 2, 2))
-    res.work2home.reqID = list(range(2, len(res.home2work.distanceAVG) * 2 + 3, 2))
+    if config.PERSIST_MODE.lower() == "csv":
+        res.loadA2BFromCSV(sourcedata + "_A2B.csv")
+        if config.RETURNMODE:
+            res.loadB2AFromCSV(sourcedata + "_B2A.csv")
+        # res = genReQIDs(config, res)
+    elif config.PERSIST_MODE.lower() == "db":
+        res.loadA2BFromDB()
+        if config.RETURNMODE:
+            res.loadB2AFromDB()
+    return res
+
+
+def genReQIDs(config: config.Config, res):
+    if config.RETURNMODE:
+        res.A2B.reqID = list(range(1, len(res.A2B.distanceAVG) * 2 + 2, 2))
+        res.B2A.reqID = list(range(2, len(res.B2A.distanceAVG) * 2 + 3, 2))
+    else:
+        res.A2B.reqID = list(range(1, len(res.A2B.distanceAVG) + 1))
     return res
 
 
@@ -64,7 +96,7 @@ def sendRequest(
                 continue
             else:
                 logger.log(f"Max number of tries reached for Request {reqID}, exiting")
-                sys.exit(1)
+                sys.exit(0)
 
     config.resetRetryCounter()
     ok = handleResponse(resp)
@@ -76,7 +108,7 @@ def sendRequest(
             continue
         else:
             logger.log(f"Max number of tries reached for Request {reqID}, exiting")
-            sys.exit(1)
+            sys.exit(0)
 
     return resp
 
@@ -91,15 +123,15 @@ def handleResponse(response: requests.Response) -> bool:
         return False
 
 
-def mockh2wResponseAsJson() -> str:
+def mockA2BResponseAsJson() -> str:
     duration_in_traffic = 900 + random.randint(-50, 50)
     duration = 800 + random.randint(-5, 5)
     distance = 5100 + random.randint(-1, 2) * 50
     return buildJson(duration_in_traffic, duration, distance)
 
 
-def mockw2hResponseAsJson() -> str:
-    duration_in_traffic = 950 + random.randint(-50, 50)
+def mockB2AResponseAsJson() -> str:
+    duration_in_traffic = 1000 + random.randint(-50, 50)
     duration = 850 + random.randint(-5, 5)
     distance = 5750 + random.randint(-1, 2) * 50
     return buildJson(duration_in_traffic, duration, distance)
@@ -123,7 +155,7 @@ def buildJson(duration_in_traffic: int, duration: int, distance: int) -> dict:
 
 
 def clearOldExportFiles(sourcedata: str) -> None:
-    if os.path.exists(sourcedata + "_h2w.csv"):
-        os.remove(sourcedata + "_h2w.csv")
-    if os.path.exists(sourcedata + "_w2h.csv"):
-        os.remove(sourcedata + "_w2h.csv")
+    if os.path.exists(sourcedata + "_A2B.csv"):
+        os.remove(sourcedata + "_A2B.csv")
+    if os.path.exists(sourcedata + "_B2A.csv"):
+        os.remove(sourcedata + "_B2A.csv")

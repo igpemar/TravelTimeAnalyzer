@@ -6,39 +6,51 @@ import helpers.logger as logger
 from datetime import datetime as datetime
 from datetime import timedelta as timedelta
 
+REQ_SEND = 0
 DATA_VALIDATION = False
+PERSIST_MODE = "db"  # choose between CSV and DB
 
 
 class Config:
-    def __init__(self, REQ_SEND: bool):
+    def __init__(self):
         # Where to
-        self.HOME = self.parseInput("Input Data", "HOME")
-        self.WORK = self.parseInput("Input Data", "WORK")
+        self.A = self.parseInput("Input Data", "FROM")
+        self.B = self.parseInput("Input Data", "TO")
 
         # Request Frequency
-        self.HIGH_SAMPLING_FREQUENCY = self.parseInput(
-            "Input Data", "REQUEST_INTERVAL_HIGH"
+        self.REQUEST_INTERVAL_FINE = self.parseInput(
+            "Input Data", "REQUEST_INTERVAL_FINE"
         )
-        self.LOW_SAMPLING_FREQUENCY = self.parseInput(
-            "Input Data", "REQUEST_INTERVAL_LOW"
+        self.REQUEST_INTERVAL_COARSE = self.parseInput(
+            "Input Data", "REQUEST_INTERVAL_COARSE"
         )
-        self.DATA_DUMP_INTERVAL = self.parseInput("Input Data", "DATA_DUMP_INTERVAL")
+        self.DATA_DUMP_INTERVAL = self.parseInput("Optional", "DATA_DUMP_INTERVAL")
         self.initiateAPIkey()
 
         # Post processing
         self.POST_PROCESSING = self.parseInput("Input Data", "POST_PROCESSING")
         self.POST_PROCESSING_INTERVAL = self.parseInput(
-            "Input Data", "POST_PROCESSING_INTERVAL"
+            "Optional", "POST_PROCESSING_INTERVAL"
         )
 
         # Delayed start
         self.START_TIME = self.parseInput("Optional", "START_TIME")
+
+        # Programmed end
+        self.END_TIME = self.parseInput("Optional", "END_TIME")
 
         # Request retry frequency
         self.RETRY_INTERVAL = 1  # seconds
         self.RETRY_COUNTER = 1
         self.RETRY_MAX_TRIES = 5
         self.REQ_SEND = REQ_SEND
+        self.RETURNMODE = self.parseInput("Input Data", "RETURN_MODE")
+        if self.B == "":
+            self.RETURNMODE = False
+            logger.log(f"Running in one-way only mode.")
+
+        # Persist mode
+        self.PERSIST_MODE = self.parseInput("Optional", "PERSIST_MODE")
 
     def initiateAPIkey(
         self,
@@ -84,27 +96,32 @@ class Config:
                 logger.log(
                     f"{param} not found in input.txt, unable to parse input data, exiting."
                 )
-            else:
-                if parsedParam == "":
-                    if param == "START_TIME":
-                        return self.defaultValue(param)
-                    else:
-                        logger.log(
-                            f"Empty {param}, unable to parse input data, exiting."
-                        )
+                sys.exit(0)
+            if parsedParam == "":
+                if param in (
+                    "START_TIME",
+                    "END_TIME",
+                    "DATA_DUMP_INTERVAL",
+                    "POST_PROCESSING_INTERVAL",
+                    "PERSIST_MODE",
+                ):
+                    # If the parameter is optional we return its default value
+                    return self.defaultValue(param)
                 else:
-                    validParam = self.validateParam(param, parsedParam)
-                    return validParam
+                    logger.log(f"Empty {param}, unable to parse input data, exiting.")
+            else:
+                validParam = self.validateParam(param, parsedParam)
+                return validParam
         else:
             logger.log("input.txt not found, unable to parse input data, exiting.")
-        sys.exit(1)
+        sys.exit(0)
 
     def validateParam(self, paramName: str, paramValue: str):
-        if paramName in ("WORK", "HOME"):
+        if paramName in ("TO", "FROM"):
             return self.validateCoordinates(paramName, paramValue)
         elif paramName in (
-            "REQUEST_INTERVAL_HIGH",
-            "REQUEST_INTERVAL_LOW",
+            "REQUEST_INTERVAL_FINE",
+            "REQUEST_INTERVAL_COARSE",
             "DATA_DUMP_INTERVAL",
             "POST_PROCESSING_INTERVAL",
         ):
@@ -112,31 +129,33 @@ class Config:
                 return self.validateIntervals(paramName, paramValue)
             else:
                 return float(paramValue)
-        elif paramName == "START_TIME":
-            return self.validateStartTime(self, paramName)
-        elif paramName == "POST_PROCESSING":
+        elif paramName in ("START_TIME", "END_TIME"):
+            return self.validateTimes(paramValue)
+        elif paramName in ("POST_PROCESSING", "RETURN_MODE"):
             return self.validateBoolean(paramName, paramValue)
-        sys.exit(1)
+        elif paramName == "PERSIST_MODE":
+            return self.validatePersist(paramName, paramValue)
+        sys.exit(0)
 
     def validateCoordinates(self, location: str, coordinates: str):
         pattern = re.compile("^\((-?\d{0,2}.\d*),\s?(-?\d{0,2}.\d*)\)$")
-        a = re.findall(pattern, coordinates)
-        if a:
-            if len(a[0]) == 2:
-                return (float(a[0][0]), float(a[0][1]))
+        matches = re.findall(pattern, coordinates)
+        if matches:
+            if len(matches[0]) == 2:
+                return (float(matches[0][0]), float(matches[0][1]))
         logger.log(
             f"wrong input {location}, must be in (DD.DDDDDD, DD.DDDDDD) format, exiting."
         )
-        sys.exit(1)
+        sys.exit(0)
 
-    def validateStartTime(self, start_time: str):
+    def validateTimes(self, time: str):
         try:
-            return datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
+            return datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
         except ValueError:
             logger.log(
-                f"wrong input {start_time}, must be in a valid YYYY-MM-DD HH:MM:SS format, exiting."
+                f"wrong input {time}, must be in valid YYYY-MM-DD HH:MM:SS format, exiting."
             )
-            sys.exit(1)
+            sys.exit(0)
 
     def validateBoolean(self, paramName: str, bool: str):
         if bool.upper() in ("TRUE", "FALSE"):
@@ -145,23 +164,38 @@ class Config:
             elif bool.upper() == "FALSE":
                 return False
         else:
-            logger.log(f"wrong input {paramName}, must be a boolean, exiting.")
-            sys.exit(1)
+            logger.log(f"wrong input {paramName}, must be boolean, exiting.")
+            sys.exit(0)
 
     def validateIntervals(self, paramName: str, paramValue: str):
         if paramValue.isdigit():
             if int(paramValue) < 1:
-                logger.log(f"{paramName}, must be a >= 1")
+                logger.log(f"{paramName}, must be >= 1")
             else:
                 return int(paramValue)
         else:
             logger.log(f"wrong input {paramName}, must be a positive integer, exiting.")
-            sys.exit(1)
+        sys.exit(0)
+
+    def validatePersist(self, paramName: str, paramValue: str):
+        if paramValue in ("csv", "db"):
+            return paramValue
+        else:
+            logger.log(f"wrong input {paramName}, must be either 'csv' or 'db'.")
+            sys.exit(0)
 
     def defaultValue(self, param: str):
         if param == "START_TIME":
             logger.log(f"Empty {param}, defaulting to now.")
             return datetime.now()
+        elif param == "END_TIME":
+            return ""
+        elif param == "DATA_DUMP_INTERVAL":
+            return self.REQUEST_INTERVAL_FINE * 10
+        elif param == "POST_PROCESSING_INTERVAL":
+            return self.REQUEST_INTERVAL_FINE * 10
+        elif param == "PERSIST_MODE":
+            return "DB"
 
     def incRetryCounter(
         self,

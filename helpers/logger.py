@@ -1,20 +1,20 @@
 from datetime import datetime as datetime
 
 
-def logIntroMessage(home: tuple, work: tuple) -> None:
-    homeCardinalLat = " N ; "
-    workCardinalLat = " N ; "
-    if home[0] < 0:
-        homeCardinalLat = " S ; "
-    if work[0] < 0:
-        workCardinalLat = " S ; "
+def logIntroMessage(A: tuple, B: tuple) -> None:
+    ACardinalLat = " N ; "
+    ACardinalLat = " N ; "
+    if A[0] < 0:
+        ACardinalLat = " S ; "
+    if B[0] < 0:
+        ACardinalLat = " S ; "
 
-    homeCardinalLon = " E "
-    workCardinalLon = " E "
-    if home[0] < 0:
-        homeCardinalLon = " W "
-    if work[0] < 0:
-        workCardinalLon = " W "
+    ACardinalLon = " E "
+    ACardinalLon = " E "
+    if A[0] < 0:
+        ACardinalLon = " W "
+    if B[0] < 0:
+        ACardinalLon = " W "
 
     print("")
     print(
@@ -26,9 +26,9 @@ def logIntroMessage(home: tuple, work: tuple) -> None:
     )
     print("Fetching driving time")
     print(" from:")
-    print("   " + str(home[0]) + homeCardinalLat + str(home[1]) + homeCardinalLon)
+    print("   " + str(A[0]) + ACardinalLat + str(A[1]) + ACardinalLon)
     print(" to:")
-    print("   " + str(work[0]) + workCardinalLat + str(work[1]) + workCardinalLon)
+    print("   " + str(B[0]) + ACardinalLat + str(B[1]) + ACardinalLon)
     print(
         "------------------------------------------------------------------------------"
     )
