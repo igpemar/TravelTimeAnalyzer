@@ -18,11 +18,11 @@ class Config:
         self.B = self.parseInput("Input Data", "TO")
 
         # Request Frequency
-        self.REQUEST_INTERVAL_HIGH = self.parseInput(
-            "Input Data", "REQUEST_INTERVAL_HIGH"
+        self.REQUEST_INTERVAL_FINE = self.parseInput(
+            "Input Data", "REQUEST_INTERVAL_FINE"
         )
-        self.REQUEST_INTERVAL_LOW = self.parseInput(
-            "Input Data", "REQUEST_INTERVAL_LOW"
+        self.REQUEST_INTERVAL_COARSE = self.parseInput(
+            "Input Data", "REQUEST_INTERVAL_COARSE"
         )
         self.DATA_DUMP_INTERVAL = self.parseInput("Optional", "DATA_DUMP_INTERVAL")
         self.initiateAPIkey()
@@ -50,7 +50,7 @@ class Config:
             logger.log(f"Running in one-way only mode.")
 
         # Persist mode
-        self.PERSIST_MODE = PERSIST_MODE
+        self.PERSIST_MODE = self.parseInput("Optional", "PERSIST_MODE")
 
     def initiateAPIkey(
         self,
@@ -96,23 +96,22 @@ class Config:
                 logger.log(
                     f"{param} not found in input.txt, unable to parse input data, exiting."
                 )
-            else:
-                if parsedParam == "":
-                    if param in (
-                        "START_TIME",
-                        "END_TIME",
-                        "DATA_DUMP_INTERVAL",
-                        "POST_PROCESSING_INTERVAL",
-                    ):
-                        return self.defaultValue(param)
-
-                    else:
-                        logger.log(
-                            f"Empty {param}, unable to parse input data, exiting."
-                        )
+                sys.exit(0)
+            if parsedParam == "":
+                if param in (
+                    "START_TIME",
+                    "END_TIME",
+                    "DATA_DUMP_INTERVAL",
+                    "POST_PROCESSING_INTERVAL",
+                    "PERSIST_MODE",
+                ):
+                    # If the parameter is optional we return its default value
+                    return self.defaultValue(param)
                 else:
-                    validParam = self.validateParam(param, parsedParam)
-                    return validParam
+                    logger.log(f"Empty {param}, unable to parse input data, exiting.")
+            else:
+                validParam = self.validateParam(param, parsedParam)
+                return validParam
         else:
             logger.log("input.txt not found, unable to parse input data, exiting.")
         sys.exit(0)
@@ -121,8 +120,8 @@ class Config:
         if paramName in ("TO", "FROM"):
             return self.validateCoordinates(paramName, paramValue)
         elif paramName in (
-            "REQUEST_INTERVAL_HIGH",
-            "REQUEST_INTERVAL_LOW",
+            "REQUEST_INTERVAL_FINE",
+            "REQUEST_INTERVAL_COARSE",
             "DATA_DUMP_INTERVAL",
             "POST_PROCESSING_INTERVAL",
         ):
@@ -134,6 +133,8 @@ class Config:
             return self.validateTimes(paramValue)
         elif paramName in ("POST_PROCESSING", "RETURN_MODE"):
             return self.validateBoolean(paramName, paramValue)
+        elif paramName == "PERSIST_MODE":
+            return self.validatePersist(paramName, paramValue)
         sys.exit(0)
 
     def validateCoordinates(self, location: str, coordinates: str):
@@ -174,6 +175,13 @@ class Config:
                 return int(paramValue)
         else:
             logger.log(f"wrong input {paramName}, must be a positive integer, exiting.")
+        sys.exit(0)
+
+    def validatePersist(self, paramName: str, paramValue: str):
+        if paramValue in ("csv", "db"):
+            return paramValue
+        else:
+            logger.log(f"wrong input {paramName}, must be either 'csv' or 'db'.")
             sys.exit(0)
 
     def defaultValue(self, param: str):
@@ -183,9 +191,11 @@ class Config:
         elif param == "END_TIME":
             return ""
         elif param == "DATA_DUMP_INTERVAL":
-            return self.REQUEST_INTERVAL_HIGH * 10
+            return self.REQUEST_INTERVAL_FINE * 10
         elif param == "POST_PROCESSING_INTERVAL":
-            return self.REQUEST_INTERVAL_HIGH * 10
+            return self.REQUEST_INTERVAL_FINE * 10
+        elif param == "PERSIST_MODE":
+            return "DB"
 
     def incRetryCounter(
         self,
