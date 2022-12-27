@@ -62,10 +62,10 @@ def createDBTables(conn: psycopg2.connect, dbConfig: dbConfig):
         cursor.execute(command)
     try:
         conn.commit()
-        logger.log("Tables created succesfully")
+        logger.log(" Tables created succesfully")
         cursor.close()
     except Exception as e:
-        logger.log(f"Failed to create tables in database: {e}")
+        logger.log(f" Failed to create tables in database: {e}")
         sys.exit()
 
 
@@ -112,7 +112,13 @@ def flushdbs(conn: psycopg2.connect):
         where reqid is not null;
         """
     cursor.execute(flushCommand)
-    conn.commit()
+    try:
+        conn.commit()
+        logger.log(" Database tables flushed successfully")
+        cursor.close()
+    except Exception as e:
+        logger.log(f" Failed to flused tables in database tables: {e}")
+        sys.exit()
     closeDBconnection(conn)
 
 
