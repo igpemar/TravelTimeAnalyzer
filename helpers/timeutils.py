@@ -31,7 +31,7 @@ def findwaittime(time: datetime, hdsf: int, ldsf: int) -> int:
 
 def waitForNextCycle(reqTimestamp: datetime, config: config.Config) -> None:
     wait_time = findwaittime(
-        reqTimestamp, config.HIGH_SAMPLING_FREQUENCY, config.LOW_SAMPLING_FREQUENCY
+        reqTimestamp, config.REQUEST_INTERVAL_HIGH, config.REQUEST_INTERVAL_LOW
     )
     runTimeSeconds = (datetime.now() - reqTimestamp).total_seconds()
     logger.log("- Waiting " + str(wait_time) + " second(s) for next request cycle-")

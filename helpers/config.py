@@ -18,19 +18,19 @@ class Config:
         self.B = self.parseInput("Input Data", "TO")
 
         # Request Frequency
-        self.HIGH_SAMPLING_FREQUENCY = self.parseInput(
+        self.REQUEST_INTERVAL_HIGH = self.parseInput(
             "Input Data", "REQUEST_INTERVAL_HIGH"
         )
-        self.LOW_SAMPLING_FREQUENCY = self.parseInput(
+        self.REQUEST_INTERVAL_LOW = self.parseInput(
             "Input Data", "REQUEST_INTERVAL_LOW"
         )
-        self.DATA_DUMP_INTERVAL = self.parseInput("Input Data", "DATA_DUMP_INTERVAL")
+        self.DATA_DUMP_INTERVAL = self.parseInput("Optional", "DATA_DUMP_INTERVAL")
         self.initiateAPIkey()
 
         # Post processing
         self.POST_PROCESSING = self.parseInput("Input Data", "POST_PROCESSING")
         self.POST_PROCESSING_INTERVAL = self.parseInput(
-            "Input Data", "POST_PROCESSING_INTERVAL"
+            "Optional", "POST_PROCESSING_INTERVAL"
         )
 
         # Delayed start
@@ -94,7 +94,12 @@ class Config:
                 )
             else:
                 if parsedParam == "":
-                    if param in ("START_TIME", "END_TIME"):
+                    if param in (
+                        "START_TIME",
+                        "END_TIME",
+                        "DATA_DUMP_INTERVAL",
+                        "POST_PROCESSING_INTERVAL",
+                    ):
                         return self.defaultValue(param)
                     else:
                         logger.log(
@@ -105,7 +110,7 @@ class Config:
                     return validParam
         else:
             logger.log("input.txt not found, unable to parse input data, exiting.")
-        sys.exit(1)
+        sys.exit(0)
 
     def validateParam(self, paramName: str, paramValue: str):
         if paramName in ("TO", "FROM"):
@@ -124,7 +129,7 @@ class Config:
             return self.validateTimes(paramValue)
         elif paramName == "POST_PROCESSING":
             return self.validateBoolean(paramName, paramValue)
-        sys.exit(1)
+        sys.exit(0)
 
     def validateCoordinates(self, location: str, coordinates: str):
         pattern = re.compile("^\((-?\d{0,2}.\d*),\s?(-?\d{0,2}.\d*)\)$")
@@ -135,7 +140,7 @@ class Config:
         logger.log(
             f"wrong input {location}, must be in (DD.DDDDDD, DD.DDDDDD) format, exiting."
         )
-        sys.exit(1)
+        sys.exit(0)
 
     def validateTimes(self, time: str):
         try:
@@ -144,7 +149,7 @@ class Config:
             logger.log(
                 f"wrong input {time}, must be in valid YYYY-MM-DD HH:MM:SS format, exiting."
             )
-            sys.exit(1)
+            sys.exit(0)
 
     def validateBoolean(self, paramName: str, bool: str):
         if bool.upper() in ("TRUE", "FALSE"):
@@ -154,7 +159,7 @@ class Config:
                 return False
         else:
             logger.log(f"wrong input {paramName}, must be boolean, exiting.")
-            sys.exit(1)
+            sys.exit(0)
 
     def validateIntervals(self, paramName: str, paramValue: str):
         if paramValue.isdigit():
@@ -164,7 +169,7 @@ class Config:
                 return int(paramValue)
         else:
             logger.log(f"wrong input {paramName}, must be a positive integer, exiting.")
-            sys.exit(1)
+            sys.exit(0)
 
     def defaultValue(self, param: str):
         if param == "START_TIME":
@@ -172,6 +177,10 @@ class Config:
             return datetime.now()
         elif param == "END_TIME":
             return ""
+        elif param == "DATA_DUMP_INTERVAL":
+            return self.REQUEST_INTERVAL_HIGH * 10
+        elif param == "POST_PROCESSING_INTERVAL":
+            return self.REQUEST_INTERVAL_HIGH * 10
 
     def incRetryCounter(
         self,
