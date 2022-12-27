@@ -47,7 +47,7 @@ def connect2DB(dbConfig: dbConfig):
             host=dbConfig.HOST,
             port=dbConfig.PORT,
         )
-        logger.log("DB connection established")
+        logger.log("Database connection established")
         return conn
     except psycopg2.OperationalError as e:
         logger.log(

@@ -53,6 +53,7 @@ def saveTravelStats2DB(TravelStats: ds.TravelStats) -> None:
             data.durationEnclTraffic[i],
         ]
         db.persistRow(conn, "B2A", row)
+    logger.log("Data persisted successfully in database tables")
     db.closeDBconnection(conn)
 
 
