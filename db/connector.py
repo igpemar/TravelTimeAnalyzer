@@ -28,7 +28,7 @@ class dbConfig:
     def __init__(self):
         self.HOST = "localhost"
         self.PORT = 5432
-        self.NAME = "postgres"
+        self.NAME = "travelAnalyzer"
         self.USER = "postgres"
         self.PASS = "postgres"
         self.STARTUP_COMMANDS = createTableCommands
