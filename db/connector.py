@@ -83,8 +83,6 @@ def getAll(conn: psycopg2.connect, tableName: str):
 
     rows = cursor.fetchall()
     cursor.close()
-    if not len(rows):
-        print("Empty")
     return rows
 
 
