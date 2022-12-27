@@ -20,7 +20,7 @@ def postProcess(config: config.Config, SAVE_LOCATION: str = "Plot.jgp") -> None:
         raise Exception("wrong axis_mode")
     while True:
         # Reading the data
-        TravelStats = extract.fetchData(config.PERSIST_MODE, "Output")
+        TravelStats = extract.fetchData(config, "Output")
         if TravelStats.A2B.isFirstWriteCycle:
             continue
 
@@ -45,18 +45,24 @@ def postProcess(config: config.Config, SAVE_LOCATION: str = "Plot.jgp") -> None:
 
         # Plotting duration including traffic vs elapsed time in seconds
         X, Y1, Y2 = parseDurationInclTraffic2XYPlot(TravelStats)
-        if not checkForDataCompletion(X, Y1, Y2):
+        if not checkForDataCompletion(config, X, Y1, Y2):
             continue
         ax1.plot(X, Y1, "b.")
-        ax1.plot(X, Y2, "r.")
+        if config.RETURNMODE:
+            ax1.plot(X, Y2, "r.")
+        else:
+            Y2 = [0]
         setYLim(ax1, Y1, Y2)
 
         # Plotting distance vs elapsed time in seconds
         X, Y1, Y2 = parseDistance2XYPlot(TravelStats)
-        if not checkForDataCompletion(X, Y1, Y2):
+        if not checkForDataCompletion(config, X, Y1, Y2):
             continue
         ax2.plot(X, Y1, "b.")
-        ax2.plot(X, Y2, "r.")
+        if config.RETURNMODE:
+            ax2.plot(X, Y2, "r.")
+        else:
+            Y2 = [0]
         setYLim(ax2, Y1, Y2)
 
         # Set xticks and labels
@@ -69,7 +75,6 @@ def postProcess(config: config.Config, SAVE_LOCATION: str = "Plot.jgp") -> None:
 
         ax1.grid()
         ax2.grid()
-        # plt.tight_layout()
 
         plt.savefig(SAVE_LOCATION)
 
@@ -108,7 +113,6 @@ def buildOutputsSourcePaths(SourcePath: str, Filename: str) -> tuple[str, str]:
 def createFigure() -> tuple[plt.axes, plt.axes]:
     plt.close("all")
     _, (ax1, ax2) = plt.subplots(1, 2, num=1, figsize=(20, 10))
-    # plt.figure(1, figsize=(15, 5))
     return (ax1, ax2)
 
 
@@ -184,5 +188,7 @@ def checkAxisMode(axis_mode: str) -> bool:
         return False
 
 
-def checkForDataCompletion(X: list, Y1: list, Y2: list) -> bool:
-    return len(X) == len(Y1) and len(X) == len(Y2)
+def checkForDataCompletion(config: config.Config, X: list, Y1: list, Y2: list) -> bool:
+    if config.RETURNMODE:
+        return len(X) == len(Y1) and len(X) == len(Y2)
+    return len(X) == len(Y1)

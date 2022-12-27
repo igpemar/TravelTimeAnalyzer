@@ -22,40 +22,45 @@ def ETLPipeline(TravelStats: ds.TravelStats, config: config.Config) -> None:
 
         # Sending Requests
         reqID_1 = TravelStats.A2B.reqID[-1]
-        reqID_2 = TravelStats.B2A.reqID[-1]
+        if config.RETURNMODE:
+            reqID_2 = TravelStats.B2A.reqID[-1]
 
         if config.REQ_SEND == 1:
             # Sending request for A2B
             logger.logRequestSent(reqID_1)
             A2BResp = extract.sendRequest(config, reqs.A2BRequest, reqID_1)
 
-            # Sending request for B2A
-            logger.logRequestSent(reqID_2)
-            B2AResp = extract.sendRequest(config, reqs.B2ARequest, reqID_2)
+            if config.RETURNMODE:
+                # Sending request for B2A
+                logger.logRequestSent(reqID_2)
+                B2AResp = extract.sendRequest(config, reqs.B2ARequest, reqID_2)
 
             # Parsing response
             A2BRespJSON = A2BResp.json()
-            B2ARespJSON = B2AResp.json()
+            if config.RETURNMODE:
+                B2ARespJSON = B2AResp.json()
 
         else:
             # Parsing response
             logger.logRequestSent(reqID_1)
             A2BRespJSON = extract.mockA2BResponseAsJson()
-            logger.logRequestSent(reqID_2)
-            B2ARespJSON = extract.mockB2AResponseAsJson()
+            if config.RETURNMODE:
+                logger.logRequestSent(reqID_2)
+                B2ARespJSON = extract.mockB2AResponseAsJson()
 
         # Storing data in memory
 
         transform.storeRespDataNP(TravelStats.A2B, reqTimestamp, A2BRespJSON)
-        transform.storeRespDataNP(TravelStats.B2A, reqTimestamp, B2ARespJSON)
+        if config.RETURNMODE:
+            transform.storeRespDataNP(TravelStats.B2A, reqTimestamp, B2ARespJSON)
 
         # Persisting data in disk
         timeSinceLastDataDump = reqTimestamp - lastDataDump
         if reqID_1 == 1 or timemngmt.isItTimeToDumpData(timeSinceLastDataDump, config):
             if config.PERSIST_MODE.lower() == "csv":
-                load.saveTravelStats2txt(TravelStats)
+                load.saveTravelStats2txt(config, TravelStats)
             elif config.PERSIST_MODE.lower() == "db":
-                load.saveTravelStats2DB(TravelStats)
+                load.saveTravelStats2DB(config, TravelStats)
             lastDataDump = datetime.now()
             TravelStats.flushStats()
 

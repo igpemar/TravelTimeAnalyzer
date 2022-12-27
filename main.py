@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     # Checking for restart
     logger.log("Checking for restart...")
-    TravelStats = extract.restartCheck(RESTART_INPUT, config.PERSIST_MODE)
+    TravelStats = extract.restartCheck(Config, RESTART_INPUT)
 
     # Checking for start time
     timemngmt.waitForStartTime(Config)

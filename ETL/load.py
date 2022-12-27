@@ -6,31 +6,36 @@ import db.connector as db
 from os.path import exists
 from filelock import FileLock
 import helpers.logger as logger
+import helpers.config as config
 import ETL.transform as transform
 import helpers.datastructures as ds
 
 
-def saveTravelStats2txt(TravelStats: ds.TravelStats, dest: str = "Output") -> None:
+def saveTravelStats2txt(
+    TravelStats: ds.TravelStats, config: config.Config, dest: str = "Output"
+) -> None:
     A2BData = transform.travelTimeColumnStack(TravelStats.A2B)
-    B2AData = transform.travelTimeColumnStack(TravelStats.B2A)
+    if config.RETURNMODE:
+        B2AData = transform.travelTimeColumnStack(TravelStats.B2A)
     logger.log("--> Dumping response data to output file...")
 
     start = time.time()
     file_A2B = dest + "_A2B.csv"
-    file_B2A = dest + "_B2A.csv"
     t1 = threading.Thread(target=writeDataToCsv, args=(file_A2B, A2BData))
-    t2 = threading.Thread(target=writeDataToCsv, args=(file_B2A, B2AData))
     t1.start()
-    t2.start()
     t1.join()
-    t2.join()
+    if config.RETURNMODE:
+        file_B2A = dest + "_B2A.csv"
+        t2 = threading.Thread(target=writeDataToCsv, args=(file_B2A, B2AData))
+        t2.start()
+        t2.join()
     elapsed = time.time() - start
 
     logger.log(f"---> Done Writing! {round(elapsed*1000,2)} ms")
     logger.log("------------------------------------------------")
 
 
-def saveTravelStats2DB(TravelStats: ds.TravelStats) -> None:
+def saveTravelStats2DB(config: config.Config, TravelStats: ds.TravelStats) -> None:
     dbConfig = db.getDBConfig()
     conn = db.connect2DB(dbConfig)
     data = TravelStats.A2B
@@ -43,21 +48,22 @@ def saveTravelStats2DB(TravelStats: ds.TravelStats) -> None:
             data.durationEnclTraffic[i],
         ]
         db.persistRow(conn, "A2B", row)
-    data = TravelStats.B2A
-    for i, _ in enumerate(data.reqID):
-        row = [
-            data.reqID[i],
-            data.timestampSTR[i],
-            data.distanceAVG[i],
-            data.durationInclTraffic[i],
-            data.durationEnclTraffic[i],
-        ]
-        db.persistRow(conn, "B2A", row)
+    if config.RETURNMODE:
+        data = TravelStats.B2A
+        for i, _ in enumerate(data.reqID):
+            row = [
+                data.reqID[i],
+                data.timestampSTR[i],
+                data.distanceAVG[i],
+                data.durationInclTraffic[i],
+                data.durationEnclTraffic[i],
+            ]
+            db.persistRow(conn, "B2A", row)
     logger.log("Data persisted successfully in database tables")
     db.closeDBconnection(conn)
 
 
-def writeDataToCsv(fileName: str, A2BData: np.ndarray) -> None:
+def writeDataToCsv(fileName: str, Data: np.ndarray) -> None:
     if exists(fileName):
         headers = ""
     else:
@@ -69,7 +75,7 @@ def writeDataToCsv(fileName: str, A2BData: np.ndarray) -> None:
         f = open(fileName, "a+")
         np.savetxt(
             f,
-            A2BData,
+            Data,
             fmt="%s",
             delimiter=" ; ",
             comments="",

@@ -11,7 +11,7 @@ from datetime import datetime as datetime
 
 
 def restartCheck(
-    FORCED_INPUT: str = "", persist: str = "CSV", sourcedata: str = "Output"
+    config: config.Config, FORCED_INPUT: str = "", sourcedata: str = "Output"
 ) -> ds.TravelStats:
     while True:
         if FORCED_INPUT != "":
@@ -25,37 +25,44 @@ def restartCheck(
             logger.log("Abort")
             sys.exit(0)
         elif s == "y" or s == "Y":
-            if persist.upper() == "CSV":
+            if config.PERSIST_MODE.upper() == "CSV":
                 clearOldExportFiles(sourcedata)
-            elif persist.upper() == "DB":
+            elif config.PERSIST_MODE.upper() == "DB":
                 db.flushdbs(db.connect2DB(db.getDBConfig()))
             res.initiateRequestIDs()
             return res
         elif s == "n" or s == "N":
-            if persist.upper() == "CSV":
+            if config.PERSIST_MODE.upper() == "CSV":
                 res.loadA2BFromCSV(sourcedata + "_A2B.csv")
-                res.loadW2FFromCSV(sourcedata + "_B2A.csv")
-            elif persist.upper() == "DB":
+                if config.RETURNMODE:
+                    res.loadB2AFromCSV(sourcedata + "_B2A.csv")
+            elif config.PERSIST_MODE.upper() == "DB":
                 res.loadA2BFromDB()
-                res.loadB2AFromDB()
+                if config.RETURNMODE:
+                    res.loadB2AFromDB()
             else:
-                logger.log(f"Wrong persist mode: {persist}, must be 'csv' or 'db'")
+                logger.log(
+                    f"Wrong persist mode: {config.PERSIST_MODE}, must be 'csv' or 'db'"
+                )
 
             res.A2B.reqID = list(range(1, len(res.A2B.distanceAVG) * 2 + 2, 2))
-            res.B2A.reqID = list(range(2, len(res.A2B.distanceAVG) * 2 + 3, 2))
+            if config.RETURNMODE:
+                res.B2A.reqID = list(range(2, len(res.B2A.distanceAVG) * 2 + 3, 2))
             return res
 
 
-def fetchData(PERSIST_MODE: str, sourcedata: str = "Output") -> ds.TravelStats:
+def fetchData(config: config.Config, sourcedata: str = "Output") -> ds.TravelStats:
     res = ds.TravelStats()
-    if PERSIST_MODE.lower() == "csv":
+    if config.PERSIST_MODE.lower() == "csv":
         res.loadA2BFromCSV(sourcedata + "_A2B.csv")
-        res.loadW2FFromCSV(sourcedata + "_B2A.csv")
         res.A2B.reqID = list(range(1, len(res.A2B.distanceAVG) * 2 + 2, 2))
-        res.B2A.reqID = list(range(2, len(res.A2B.distanceAVG) * 2 + 3, 2))
-    elif PERSIST_MODE.lower() == "db":
+        if config.RETURNMODE:
+            res.loadB2AFromCSV(sourcedata + "_B2A.csv")
+            res.B2A.reqID = list(range(2, len(res.A2B.distanceAVG) * 2 + 3, 2))
+    elif config.PERSIST_MODE.lower() == "db":
         res.loadA2BFromDB()
-        res.loadB2AFromDB()
+        if config.RETURNMODE:
+            res.loadB2AFromDB()
     return res
 
 
