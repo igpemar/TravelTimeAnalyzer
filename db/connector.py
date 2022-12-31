@@ -27,6 +27,7 @@ createTableCommands = (
 class dbConfig:
     def __init__(self):
         self.HOST = "localhost"
+        self.DOCKER_DB_HOST = "travelAnalyzerDB"
         self.PORT = 5432
         self.NAME = "travelAnalyzer"
         self.USER = "postgres"
@@ -50,10 +51,21 @@ def connect2DB(dbConfig: dbConfig):
         logger.log("Database connection established")
         return conn
     except psycopg2.OperationalError as e:
-        logger.log(
-            f"Failed to connect to database {dbConfig.NAME} in port {dbConfig.PORT}: {e}"
-        )
-        sys.exit(0)
+        try:
+            conn = psycopg2.connect(
+                dbname=dbConfig.NAME,
+                user=dbConfig.USER,
+                password=dbConfig.PASS,
+                host=dbConfig.DOCKER_DB_HOST,
+                port=dbConfig.PORT,
+            )
+            logger.log("Database connection established")
+            return conn
+        except psycopg2.OperationalError as e:
+            logger.log(
+                f"Failed to connect to database {dbConfig.NAME} in port {dbConfig.PORT}: {e}"
+            )
+            sys.exit(0)
 
 
 def createDBTables(conn: psycopg2.connect, dbConfig: dbConfig):
