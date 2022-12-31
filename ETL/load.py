@@ -35,6 +35,8 @@ def saveTravelStats2txt(
 
 
 def saveTravelStats2DB(config: config.Config, TravelStats: ds.TravelStats) -> None:
+    import db.connector as db
+
     dbConfig = db.getDBConfig()
     conn = db.connect2DB(dbConfig)
     data = TravelStats.A2B
