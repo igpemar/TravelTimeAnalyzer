@@ -9,6 +9,8 @@ RESTART_INPUT = "Y"
 
 if __name__ == "__main__":
     # Get configuration variables
+    print("---------------------------------------------------------------------")
+    logger.log("Parsing input parameteres...")
     Config = config.Config()
 
     # Print intro message

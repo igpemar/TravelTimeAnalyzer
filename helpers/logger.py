@@ -17,21 +17,15 @@ def logIntroMessage(A: tuple, B: tuple) -> None:
         ACardinalLon = " W "
 
     print("")
-    print(
-        "-----------------------------------------------------------------------------"
-    )
+    print("---------------------------------------------------------------------")
     print("  Welcome to Google Maps Commute Analyzer")
-    print(
-        "------------------------------------------------------------------------------"
-    )
+    print("---------------------------------------------------------------------")
     print("Fetching driving time")
     print(" from:")
     print("   " + str(A[0]) + ACardinalLat + str(A[1]) + ACardinalLon)
     print(" to:")
     print("   " + str(B[0]) + ACardinalLat + str(B[1]) + ACardinalLon)
-    print(
-        "------------------------------------------------------------------------------"
-    )
+    print("---------------------------------------------------------------------")
 
 
 def logWaitTimeMessage(start_time: str) -> None:
@@ -52,4 +46,4 @@ def logRequestReceivedSuccesfully(reqID: int) -> None:
 
 
 def log(logString: str) -> None:
-    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " ; " + logString)
+    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + " ; " + logString)
