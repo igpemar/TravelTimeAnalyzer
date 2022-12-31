@@ -1,0 +1,15 @@
+services:
+  tta_app:
+    build: ./
+    command: python3 main.py
+    depends_on:
+      - tta_db
+
+  tta_db:
+    build: ./db/
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: travelAnalyzer
+    ports:
+      - '5432:5432'
