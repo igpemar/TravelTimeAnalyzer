@@ -25,6 +25,8 @@ class Config:
             self.REQUEST_INTERVAL_FINE_TIMERANGES = self.parseInput(
                 "Optional", "REQUEST_INTERVAL_FINE_TIMERANGES"
             )
+        else:
+            self.REQUEST_INTERVAL_FINE_TIMERANGES = []
 
         self.DATA_DUMP_INTERVAL = self.parseInput("Optional", "DATA_DUMP_INTERVAL")
         self.initiateAPIkey()
