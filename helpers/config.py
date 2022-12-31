@@ -30,7 +30,9 @@ class Config:
         self.initiateAPIkey()
 
         # Post processing
-        self.POST_PROCESSING = self.parseInput("Input Data", "POST_PROCESSING")
+        self.ENABLE_POST_PROCESSING = self.parseInput(
+            "Input Data", "ENABLE_POST_PROCESSING"
+        )
         self.POST_PROCESSING_INTERVAL = self.parseInput(
             "Optional", "POST_PROCESSING_INTERVAL"
         )
@@ -135,7 +137,7 @@ class Config:
                 return float(paramValue)
         elif paramName in ("START_TIME", "END_TIME"):
             return self.validateTimes(paramValue)
-        elif paramName in ("POST_PROCESSING", "RETURN_MODE"):
+        elif paramName in ("ENABLE_POST_PROCESSING", "RETURN_MODE"):
             return self.validateBoolean(paramName, paramValue)
         elif paramName == "PERSIST_MODE":
             return self.validatePersist(paramName, paramValue)

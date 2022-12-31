@@ -7,7 +7,7 @@ RETURN_MODE = true
 REQUEST_INTERVAL = 0.1
 
 # Post processing
-POST_PROCESSING = true
+ENABLE_POST_PROCESSING = true
 
 [Optional]
 REQUEST_INTERVAL_FINE = 0.05

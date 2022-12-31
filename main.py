@@ -36,7 +36,7 @@ if __name__ == "__main__":
     t1.start()
 
     # Start PostProcessing service
-    if Config.POST_PROCESSING:
+    if Config.ENABLE_POST_PROCESSING:
         from PostProcessing.plotter import postProcess
 
         t2 = threading.Thread(
