@@ -48,7 +48,7 @@ class Config:
         self.RETRY_COUNTER = 1
         self.RETRY_MAX_TRIES = 5
         self.REQ_SEND = REQ_SEND
-        self.RETURNMODE = self.parseInput("Input Data", "RETURN_MODE")
+        self.RETURNMODE = self.parseInput("Input Data", "ENABLE_RETURN_MODE")
         if self.B == "":
             self.RETURNMODE = False
             logger.log(f"Running in one-way only mode.")
@@ -137,7 +137,7 @@ class Config:
                 return float(paramValue)
         elif paramName in ("START_TIME", "END_TIME"):
             return self.validateTimes(paramValue)
-        elif paramName in ("ENABLE_POST_PROCESSING", "RETURN_MODE"):
+        elif paramName in ("ENABLE_POST_PROCESSING", "ENABLE_RETURN_MODE"):
             return self.validateBoolean(paramName, paramValue)
         elif paramName == "PERSIST_MODE":
             return self.validatePersist(paramName, paramValue)
