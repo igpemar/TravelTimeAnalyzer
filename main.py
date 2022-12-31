@@ -1,5 +1,4 @@
 import threading
-import db.connector as db
 import ETL.extract as extract
 import ETL.pipeline as pipeline
 import helpers.config as config
@@ -16,8 +15,14 @@ if __name__ == "__main__":
     logger.logIntroMessage(Config.A, Config.B)
 
     # Setting up database environment
-    if config.PERSIST_MODE.upper() == "DB":
-        db.setDatabases()
+    if Config.PERSIST_MODE.upper() == "DB":
+        import db.connector as db
+
+        try:
+            db.setDatabases()
+        except:
+            logger.log("Unable to set databases, defaulting to csv dump mode.")
+            Config.PERSIST_MODE = "csv"
 
     # Checking for restart
     logger.log("Checking for restart...")
