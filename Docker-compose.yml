@@ -1,5 +1,5 @@
 services:
-  tta_db:
+  db:
     build: ./db/
     restart: always
     environment:
@@ -7,8 +7,8 @@ services:
       POSTGRES_DB: travelAnalyzer
     ports:
       - '5432:5432'
-  tta_app:
+  app:
     build: ./
     command: sh -c "sleep 1s; python3 main.py"
     depends_on:
-      - tta_db
+      - db
