@@ -60,6 +60,8 @@ def ETLPipeline(TravelStats: ds.TravelStats, config: config.Config) -> None:
             if config.PERSIST_MODE.lower() == "csv":
                 load.saveTravelStats2txt(config, TravelStats)
             elif config.PERSIST_MODE.lower() == "db":
+                import db.connector as db
+
                 load.saveTravelStats2DB(config, TravelStats)
             lastDataDump = datetime.now()
             TravelStats.flushA2BStats()

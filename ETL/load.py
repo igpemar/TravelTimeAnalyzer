@@ -2,7 +2,6 @@ import os
 import time
 import threading
 import numpy as np
-import db.connector as db
 from os.path import exists
 from filelock import FileLock
 import helpers.logger as logger

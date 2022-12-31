@@ -2,7 +2,6 @@ import csv
 import helpers.logger as logger
 import helpers.config as config
 from datetime import datetime as datetime
-import db.connector as db
 
 
 class TravelStats:
@@ -126,6 +125,8 @@ class TravelTime:
             self.isFirstWriteCycle = False
 
     def loadOutputFromDB(self, tableName: str):
+        import db.connector as db
+
         dbConfig = db.getDBConfig()
         conn = db.connect2DB(dbConfig)
         data = db.getAll(conn, tableName)
@@ -151,7 +152,7 @@ class GoogleMapsRequests:
         self.A2BRequest = ""
         self.B2ARequest = ""
 
-    def build_request(self, config: config.Config) -> tuple[str]:
+    def build_request(self, config: config.Config):
         outputFormat = "json"
         baseURL = "https://maps.googleapis.com/maps/api/distancematrix/"
         startPoint = str(config.A[0]) + "%2C" + str(config.A[1])

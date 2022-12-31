@@ -3,7 +3,6 @@ import sys
 import time
 import random
 import requests
-import db.connector as db
 import helpers.config as config
 import helpers.logger as logger
 import helpers.datastructures as ds
@@ -28,6 +27,8 @@ def restartCheck(
             if config.PERSIST_MODE.upper() == "CSV":
                 clearOldExportFiles(sourcedata)
             elif config.PERSIST_MODE.upper() == "DB":
+                import db.connector as db
+
                 db.flushdbs(db.connect2DB(db.getDBConfig()))
             res.initiateRequestIDs()
             return res
