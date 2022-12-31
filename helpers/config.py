@@ -8,7 +8,6 @@ from datetime import timedelta as timedelta
 
 REQ_SEND = 0
 DATA_VALIDATION = False
-PERSIST_MODE = "db"  # choose between CSV and DB
 
 
 class Config:
@@ -18,12 +17,15 @@ class Config:
         self.B = self.parseInput("Input Data", "TO")
 
         # Request Frequency
+        self.REQUEST_INTERVAL = self.parseInput("Input Data", "REQUEST_INTERVAL")
         self.REQUEST_INTERVAL_FINE = self.parseInput(
-            "Input Data", "REQUEST_INTERVAL_FINE"
+            "Optional", "REQUEST_INTERVAL_FINE"
         )
-        self.REQUEST_INTERVAL_COARSE = self.parseInput(
-            "Input Data", "REQUEST_INTERVAL_COARSE"
-        )
+        if self.REQUEST_INTERVAL_FINE < self.REQUEST_INTERVAL:
+            self.REQUEST_INTERVAL_FINE_TIMERANGES = self.parseInput(
+                "Optional", "REQUEST_INTERVAL_FINE_TIMERANGES"
+            )
+
         self.DATA_DUMP_INTERVAL = self.parseInput("Optional", "DATA_DUMP_INTERVAL")
         self.initiateAPIkey()
 
@@ -104,6 +106,8 @@ class Config:
                     "DATA_DUMP_INTERVAL",
                     "POST_PROCESSING_INTERVAL",
                     "PERSIST_MODE",
+                    "REQUEST_INTERVAL_FINE",
+                    "REQUEST_INTERVAL_FINE_TIMERANGES",
                 ):
                     # If the parameter is optional we return its default value
                     return self.defaultValue(param)
@@ -121,7 +125,7 @@ class Config:
             return self.validateCoordinates(paramName, paramValue)
         elif paramName in (
             "REQUEST_INTERVAL_FINE",
-            "REQUEST_INTERVAL_COARSE",
+            "REQUEST_INTERVAL",
             "DATA_DUMP_INTERVAL",
             "POST_PROCESSING_INTERVAL",
         ):
@@ -135,6 +139,8 @@ class Config:
             return self.validateBoolean(paramName, paramValue)
         elif paramName == "PERSIST_MODE":
             return self.validatePersist(paramName, paramValue)
+        elif paramName == "REQUEST_INTERVAL_FINE_TIMERANGES":
+            return self.validateTimeRanges(paramValue)
         sys.exit(0)
 
     def validateCoordinates(self, location: str, coordinates: str):
@@ -147,6 +153,76 @@ class Config:
             f"wrong input {location}, must be in (DD.DDDDDD, DD.DDDDDD) format, exiting."
         )
         sys.exit(0)
+
+    def validateTimeRanges(self, timeranges):
+        if self.checkForDecimalPoint(timeranges):
+            logger.log(
+                f"wrong input {timeranges}, cannot contain decimal point, exiting."
+            )
+            sys.exit(0)
+
+        pattern = re.compile("\[?(-?\d{1,2}),?")
+        matches = re.findall(pattern, timeranges)
+        if matches:
+            # Regex match is detected
+            if len(matches) % 2 != 0:
+                # Check for even number of interval limits
+                logger.log(
+                    f"wrong input {timeranges}, timeranges must contain an even number of parameters, exiting."
+                )
+            else:
+                for i, match in enumerate(matches):
+                    if self.checkForNegative(match):
+                        # Positive integers only
+                        logger.log(
+                            f"wrong input {timeranges}, must contain only positive integers < 24, exiting."
+                        )
+                        sys.exit(0)
+                    if int(match) > 23:
+                        # Positive integers under 24 only
+                        logger.log(
+                            f"wrong input {timeranges}, must contain only positive integers < 24, exiting."
+                        )
+                        sys.exit(0)
+                    if i == 0:
+                        continue
+                    if int(match) == 0:
+                        # Edge case where one of the limit intervals is zero
+                        if not self.checkForLastelement(i, matches):
+                            logger.log(
+                                f"wrong input {timeranges}, {match} can only be at the beginning and/or end of the timerange array, exiting."
+                            )
+                            sys.exit(0)
+                        else:
+                            break
+                    elif int(match) <= int(matches[i - 1]):
+                        # Check for strictly growing array
+                        logger.log(
+                            f"wrong input {timeranges}, must be in strictly growing order, exiting."
+                        )
+                        sys.exit(0)
+                return [int(match) for match in matches]
+        else:
+            # Regex match is not detected
+            if timeranges == "[]":
+                logger.log("Empty timeranges, defaulting to constant interval mode.")
+                return []
+            logger.log(
+                f"wrong input {timeranges}, must be in [HH, HH, ...] format, exiting."
+            )
+        sys.exit(0)
+
+    def checkForDecimalPoint(self, string: str):
+        pattern = re.compile("\.")
+        if re.findall(pattern, string):
+            return True
+        return False
+
+    def checkForNegative(self, string: str):
+        return int(string) < 0
+
+    def checkForLastelement(self, i: int, list: list):
+        return i == len(list) - 1
 
     def validateTimes(self, time: str):
         try:
@@ -196,6 +272,10 @@ class Config:
             return self.REQUEST_INTERVAL_FINE * 10
         elif param == "PERSIST_MODE":
             return "DB"
+        elif param == "REQUEST_INTERVAL_FINE":
+            return self.REQUEST_INTERVAL
+        elif param == "REQUEST_INTERVAL_FINE_TIMERANGES":
+            return []
 
     def incRetryCounter(
         self,

@@ -21,18 +21,19 @@ def isItTimeToDumpData(timeSinceLastDataDump: datetime, config: config.Config) -
     )
 
 
-def findwaittime(time: datetime, hdsf: int, ldsf: int) -> int:
-    if time.weekday():
-        h = time.hour
-        if 5 <= h < 11 or 13 <= h < 19:
-            return hdsf
-    return ldsf
+def findwaittime(time: datetime, config: config.Config) -> int:
+    h = time.hour
+    # Parse time intervals
+    limits = config.REQUEST_INTERVAL_FINE_TIMERANGES
+    for i, v in enumerate(limits):
+        if i % 2 == 0:
+            if h >= v and h < limits[i + 1]:
+                return config.REQUEST_INTERVAL_FINE
+    return config.REQUEST_INTERVAL
 
 
 def waitForNextCycle(reqTimestamp: datetime, config: config.Config) -> None:
-    wait_time = findwaittime(
-        reqTimestamp, config.REQUEST_INTERVAL_FINE, config.REQUEST_INTERVAL_COARSE
-    )
+    wait_time = findwaittime(reqTimestamp, config)
     runTimeSeconds = (datetime.now() - reqTimestamp).total_seconds()
     logger.log("- Waiting " + str(wait_time) + " second(s) for next request cycle-")
     logger.log("------------------------------------------------")
