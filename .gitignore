@@ -1,3 +1,4 @@
 *.csv
 *.jpg
 helpers/secrets/*
+.DS_Store
