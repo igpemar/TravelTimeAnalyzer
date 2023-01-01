@@ -27,8 +27,8 @@ createTableCommands = (
 class dbConfig:
     def __init__(self):
         self.HOST = "localhost"
+        self.PORT = 5433
         self.DOCKER_DB_HOST = "tta_db"
-        self.PORT = 5431
         self.DOCKER_DB_PORT = 5431
         self.NAME = "travelAnalyzer"
         self.USER = "postgres"
