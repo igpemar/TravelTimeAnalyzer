@@ -12,6 +12,6 @@ services:
   app:
     build: ./
     container_name: tta_app
-    command: sh -c "sleep 1s; python3 main.py"
+    command: sh -c "sleep 2s; python3 main.py"
     depends_on:
       - db
