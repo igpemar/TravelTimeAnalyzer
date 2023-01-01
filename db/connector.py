@@ -28,7 +28,8 @@ class dbConfig:
     def __init__(self):
         self.HOST = "localhost"
         self.DOCKER_DB_HOST = "tta_db"
-        self.PORT = 5431
+        self.PORT = 5433
+        self.DOCKER_DB_PORT = 5431
         self.NAME = "travelAnalyzer"
         self.USER = "postgres"
         self.PASS = "postgres"
@@ -57,7 +58,7 @@ def connect2DB(dbConfig: dbConfig):
                 user=dbConfig.USER,
                 password=dbConfig.PASS,
                 host=dbConfig.DOCKER_DB_HOST,
-                port=dbConfig.PORT,
+                port=dbConfig.DOCKER_DB_PORT,
             )
             logger.log("Database connection established")
             return conn
