@@ -7,7 +7,7 @@ from datetime import datetime as datetime
 from datetime import timedelta as timedelta
 
 REQ_SEND = 0
-DATA_VALIDATION = False
+DATA_VALIDATION = True
 
 
 class Config:

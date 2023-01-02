@@ -52,27 +52,21 @@ def connect2DB(dbConfig: dbConfig):
         logger.log("Database connection established")
         return conn
     except psycopg2.OperationalError as e:
-        logger.log(
-            f"Failed to connect to database {dbConfig.NAME} in {dbConfig.HOST}:{dbConfig.PORT}: {e}"
-        )
-        logger.log(
-            f"Retrying connecting to {dbConfig.NAME} in {dbConfig.DOCKER_DB_HOST}:{dbConfig.DOCKER_DB_PORT}"
-        )
-    try:
-        conn = psycopg2.connect(
-            dbname=dbConfig.NAME,
-            user=dbConfig.USER,
-            password=dbConfig.PASS,
-            host=dbConfig.DOCKER_DB_HOST,
-            port=dbConfig.DOCKER_DB_PORT,
-        )
-        logger.log("Database connection established")
-        return conn
-    except psycopg2.OperationalError as e:
-        logger.log(
-            f"Failed to connect to database {dbConfig.NAME} in {dbConfig.DOCKER_DB_HOST}:{dbConfig.DOCKER_DB_PORT}: {e}"
-        )
-        sys.exit(0)
+        try:
+            conn = psycopg2.connect(
+                dbname=dbConfig.NAME,
+                user=dbConfig.USER,
+                password=dbConfig.PASS,
+                host=dbConfig.DOCKER_DB_HOST,
+                port=dbConfig.DOCKER_DB_PORT,
+            )
+            logger.log("Database connection established")
+            return conn
+        except psycopg2.OperationalError as e:
+            logger.log(
+                f"Failed to connect to database {dbConfig.NAME} in {dbConfig.DOCKER_DB_HOST}:{dbConfig.DOCKER_DB_PORT}: {e}"
+            )
+            sys.exit(0)
 
 
 def createDBTables(conn: psycopg2.connect, dbConfig: dbConfig):
