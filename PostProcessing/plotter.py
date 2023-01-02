@@ -9,7 +9,7 @@ import helpers.config as config
 from datetime import datetime as datetime
 from datetime import timedelta as timedelta
 
-axis_mode = "Running"  # Choose between "Running", "FullWeek" and "FullDay"
+axis_mode = "FullDay"  # Choose between "Running", "FullWeek" and "FullDay"
 
 Vector = list[float]
 

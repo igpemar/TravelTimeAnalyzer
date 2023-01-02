@@ -5,7 +5,7 @@ import helpers.config as config
 import helpers.logger as logger
 import helpers.timeutils as timemngmt
 
-RESTART_INPUT = "Y"
+RESTART_INPUT = "N"
 
 if __name__ == "__main__":
     # Get configuration variables
